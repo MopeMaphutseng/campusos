@@ -13,8 +13,11 @@ export const dataSourceOptions: DataSourceOptions = {
   database: process.env.DB_NAME || 'campusos',
   schema: process.env.DB_SCHEMA || 'public',
   logging: process.env.NODE_ENV === 'development',
-  synchronize: false,
-  migrationsRun: true,
+  synchronize: process.env.DB_SYNCHRONIZE === 'true',
+  migrationsRun:
+    process.env.DB_SYNCHRONIZE === 'true'
+      ? false
+      : process.env.DB_MIGRATIONS_RUN !== 'false',
   entities: [path.join(__dirname, '..', 'modules', '**', '*.entity.{ts,js}'), path.join(__dirname, '..', 'common', '**', '*.entity.{ts,js}')],
   migrations: [path.join(__dirname, '..', 'database', 'migrations', '*{.ts,.js}')],
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,

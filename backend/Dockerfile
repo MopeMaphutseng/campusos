@@ -21,10 +21,11 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 
 COPY --from=builder /app/dist ./dist
+COPY start.sh ./start.sh
 
 EXPOSE 3000
 
 USER node
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/main.js"]
+CMD ["sh", "start.sh"]

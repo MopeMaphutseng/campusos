@@ -22,14 +22,19 @@ services:
     plan: free
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
-    # Run the (idempotent) seed, then start the API.
-    startCommand: sh -c "node dist/database/seeds/seed.js && node dist/main.js"
+    # Run the (idempotent) seed, then start the API (see backend/start.sh).
+    startCommand: sh start.sh
     envVars:
       - key: NODE_ENV
         value: production
       # Use in-memory cache so no Redis instance is required.
       - key: CACHE_STORE
         value: memory
+      # Build the schema from the entity model (the migration set is partial).
+      - key: DB_SYNCHRONIZE
+        value: "true"
+      - key: DB_MIGRATIONS_RUN
+        value: "false"
       - key: DB_HOST
         fromDatabase:
           name: campusos-db

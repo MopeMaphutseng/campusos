@@ -1,4 +1,5 @@
 import { DataSource } from 'typeorm';
+import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import * as bcrypt from 'bcryptjs';
 import { University, UniversityStatus } from '../../modules/tenants/entities/university.entity';
@@ -85,8 +86,16 @@ async function seed() {
     username: process.env.DB_USER || 'campusos',
     password: process.env.DB_PASSWORD || 'campusos_dev',
     database: process.env.DB_NAME || 'campusos',
+    schema: process.env.DB_SCHEMA || 'public',
     entities: [University, User, UniversityModule, LibraryItem, LibraryCategory, Listing, FoodShop],
-    synchronize: false,
+    // Ensure the schema exists before seeding (safe on an empty host DB).
+    migrations: [path.join(__dirname, '..', 'migrations', '*{.ts,.js}')],
+    migrationsRun:
+      process.env.DB_SYNCHRONIZE === 'true'
+        ? false
+        : process.env.DB_MIGRATIONS_RUN !== 'false',
+    synchronize: process.env.DB_SYNCHRONIZE === 'true',
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   });
 
   await dataSource.initialize();
@@ -168,6 +177,31 @@ async function seed() {
       console.log(`  ✅ Created user: ${userData.firstName} ${userData.lastName} (${userData.role})`);
     }
     createdUsers.push(user);
+  }
+
+  // Dedicated admin account for the hosted demo (matches the README).
+  const demoAdminEmail = 'admin@campusos.ls';
+  let demoAdmin = await userRepo.findOne({
+    where: { email: demoAdminEmail, universityId: primaryUniId },
+  });
+  if (!demoAdmin) {
+    demoAdmin = userRepo.create({
+      email: demoAdminEmail,
+      passwordHash: await bcrypt.hash('AdminCampus2026', 12),
+      firstName: 'CampusOS',
+      lastName: 'Admin',
+      universityId: primaryUniId,
+      role: UserRole.ADMIN,
+      verificationStatus: VerificationStatus.VERIFIED,
+      enabledModules: DEFAULT_MODULES,
+      preferences: {
+        language: 'en',
+        theme: 'system',
+        notifications: { push: true, email: true, sms: false },
+      },
+    });
+    await userRepo.save(demoAdmin);
+    console.log('  ✅ Created admin: admin@campusos.ls');
   }
 
   const now = new Date();
