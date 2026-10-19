@@ -9,7 +9,7 @@ import 'package:campusos/core/utils/storage.dart';
 
 enum ThemeModeOption { light, dark, system }
 
-final themeModeProvider = StateProvider<ThemeModeOption>((ref) => ThemeModeOption.system);
+final themeModeProvider = StateProvider<ThemeModeOption>((ref) => ThemeModeOption.dark);
 
 class App extends ConsumerStatefulWidget {
   const App({super.key});

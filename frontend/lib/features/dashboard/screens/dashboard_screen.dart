@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:animate_do/animate_do.dart';
 import 'package:campusos/core/theme/app_colors.dart';
 import 'package:campusos/core/widgets/widgets.dart';
 import 'package:campusos/features/dashboard/providers/dashboard_provider.dart';
@@ -21,127 +22,170 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboardAsync = ref.watch(todayDashboardProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(todayDashboardProvider);
-          await Future.delayed(const Duration(milliseconds: 500));
-        },
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          slivers: [
-            SliverAppBar(
-              expandedHeight: 0,
-              floating: true,
-              pinned: false,
-              backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
-              title: Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      gradient: AppColors.heroGradient,
-                      borderRadius: BorderRadius.circular(10),
+      backgroundColor: Colors.transparent,
+      body: AuroraBackground(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(todayDashboardProvider);
+            await Future.delayed(const Duration(milliseconds: 500));
+          },
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 0,
+                floating: true,
+                pinned: false,
+                backgroundColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+                title: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        gradient: AppColors.auroraGradient,
+                        borderRadius: BorderRadius.circular(11),
+                        boxShadow: AppColors.glow(AppColors.primaryAccent, strength: 0.4, radius: 16),
+                      ),
+                      child: const Icon(Icons.school_rounded, color: Colors.white, size: 20),
                     ),
-                    child: const Icon(Icons.school_rounded, color: Colors.white, size: 20),
+                    const SizedBox(width: 10),
+                    Text(
+                      'CampusOS',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  CampusIconButton(
+                    icon: LucideIcons.bell,
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())),
+                    tooltip: 'Notifications',
                   ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'CampusOS',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                    ),
+                    child: const UserAvatar(
+                      initials: 'JD',
+                      size: 36,
+                    ),
                   ),
+                  const SizedBox(width: 12),
                 ],
               ),
-              actions: [
-                CampusIconButton(
-                  icon: LucideIcons.bell,
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())),
-                  tooltip: 'Notifications',
+              dashboardAsync.when(
+                loading: () => const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
                 ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                  ),
-                  child: const UserAvatar(
-                    initials: 'JD',
-                    size: 36,
+                error: (err, stack) => SliverFillRemaining(
+                  child: EmptyState(
+                    icon: LucideIcons.alertCircle,
+                    title: 'Something went wrong',
+                    message: 'Pull to refresh and try again',
+                    actionLabel: 'Retry',
+                    onAction: () => ref.invalidate(todayDashboardProvider),
                   ),
                 ),
-                const SizedBox(width: 12),
-              ],
-            ),
-            dashboardAsync.when(
-              loading: () => const SliverFillRemaining(
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (err, stack) => SliverFillRemaining(
-                child: EmptyState(
-                  icon: LucideIcons.alertCircle,
-                  title: 'Something went wrong',
-                  message: 'Pull to refresh and try again',
-                  actionLabel: 'Retry',
-                  onAction: () => ref.invalidate(todayDashboardProvider),
-                ),
-              ),
-              data: (dashboard) => SliverPadding(
-                padding: const EdgeInsets.only(bottom: 20),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    TodayDashboardHeader(
-                      greeting: dashboard.greeting,
-                      userName: 'Student',
-                    ),
-                    const SizedBox(height: 4),
-                    const WeatherWidget(
-                      temp: 22,
-                      condition: 'Partly Cloudy',
-                    ),
-                    const SizedBox(height: 12),
-                    QuickStatsRow(
-                      stats: dashboard.quickStats,
-                    ),
-                    const SizedBox(height: 16),
-                    if (dashboard.nextClass != null)
-                      NextClassCard(classInfo: dashboard.nextClass!),
-                    const SizedBox(height: 12),
-                    if (dashboard.upcomingDeadline != null)
-                      DeadlineCountdownCard(deadline: dashboard.upcomingDeadline!),
-                    const SizedBox(height: 12),
-                    AISuggestionCard(suggestion: dashboard.aiSuggestedAction),
-                    const SizedBox(height: 12),
-                    const MomentsShowcaseCard(),
-                    const SizedBox(height: 12),
-                    if (dashboard.highlightedOpportunity != null)
-                      OpportunityCard(
-                        opportunity: dashboard.highlightedOpportunity!,
-                      ),
-                    const SizedBox(height: 16),
-                    SectionHeader(
-                      title: 'Quick Access',
-                      actionText: 'Customize',
-                      onAction: () => ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Demo: Customize dashboard'),
-                          duration: Duration(seconds: 1),
+                data: (dashboard) => SliverPadding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      FadeInDown(
+                        duration: const Duration(milliseconds: 450),
+                        child: TodayDashboardHeader(
+                          greeting: dashboard.greeting,
+                          userName: 'Student',
                         ),
                       ),
-                    ),
-                    const QuickModulesGrid(),
-                    const SizedBox(height: 80),
-                  ]),
+                      const SizedBox(height: 4),
+                      FadeInDown(
+                        duration: const Duration(milliseconds: 450),
+                        delay: const Duration(milliseconds: 60),
+                        child: const WeatherWidget(
+                          temp: 22,
+                          condition: 'Partly Cloudy',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      FadeInUp(
+                        duration: const Duration(milliseconds: 450),
+                        delay: const Duration(milliseconds: 120),
+                        child: QuickStatsRow(
+                          stats: dashboard.quickStats,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      if (dashboard.nextClass != null)
+                        FadeInUp(
+                          duration: const Duration(milliseconds: 450),
+                          delay: const Duration(milliseconds: 180),
+                          child: NextClassCard(classInfo: dashboard.nextClass!),
+                        ),
+                      const SizedBox(height: 12),
+                      if (dashboard.upcomingDeadline != null)
+                        FadeInUp(
+                          duration: const Duration(milliseconds: 450),
+                          delay: const Duration(milliseconds: 240),
+                          child: DeadlineCountdownCard(deadline: dashboard.upcomingDeadline!),
+                        ),
+                      const SizedBox(height: 12),
+                      FadeInUp(
+                        duration: const Duration(milliseconds: 450),
+                        delay: const Duration(milliseconds: 300),
+                        child: AISuggestionCard(suggestion: dashboard.aiSuggestedAction),
+                      ),
+                      const SizedBox(height: 12),
+                      FadeInUp(
+                        duration: const Duration(milliseconds: 450),
+                        delay: const Duration(milliseconds: 340),
+                        child: const MomentsShowcaseCard(),
+                      ),
+                      const SizedBox(height: 12),
+                      if (dashboard.highlightedOpportunity != null)
+                        FadeInUp(
+                          duration: const Duration(milliseconds: 450),
+                          delay: const Duration(milliseconds: 380),
+                          child: OpportunityCard(
+                            opportunity: dashboard.highlightedOpportunity!,
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      FadeInUp(
+                        duration: const Duration(milliseconds: 450),
+                        delay: const Duration(milliseconds: 420),
+                        child: SectionHeader(
+                          title: 'Quick Access',
+                          actionText: 'Customize',
+                          onAction: () => ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Demo: Customize dashboard'),
+                              duration: Duration(seconds: 1),
+                            ),
+                          ),
+                        ),
+                      ),
+                      FadeInUp(
+                        duration: const Duration(milliseconds: 500),
+                        delay: const Duration(milliseconds: 460),
+                        child: const QuickModulesGrid(),
+                      ),
+                      const SizedBox(height: 80),
+                    ]),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

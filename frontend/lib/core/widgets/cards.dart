@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:campusos/core/theme/app_colors.dart';
 
@@ -9,6 +11,7 @@ class CampusCard extends StatelessWidget {
   final Gradient? gradient;
   final bool isHighlighted;
   final double? elevation;
+  final bool glass;
 
   const CampusCard({
     super.key,
@@ -19,53 +22,70 @@ class CampusCard extends StatelessWidget {
     this.gradient,
     this.isHighlighted = false,
     this.elevation,
+    this.glass = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final radius = BorderRadius.circular(20);
+    final useGlass = glass && gradient == null;
+
+    Widget inner = AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+      decoration: BoxDecoration(
+        gradient: gradient ?? (useGlass ? AppColors.glassSheen(isDark: isDark) : null),
+        color: gradient == null && !useGlass
+            ? (isDark ? AppColors.surfaceDark : AppColors.surfaceLight)
+            : null,
+        borderRadius: radius,
+        border: isHighlighted
+            ? Border.all(color: AppColors.primaryAccent.withValues(alpha: 0.45), width: 2)
+            : Border.all(
+                color: useGlass
+                    ? AppColors.glassBorder(isDark: isDark)
+                    : (isDark
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.grey.withValues(alpha: 0.08)),
+              ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowColor(isDark: isDark),
+            blurRadius: elevation ?? (useGlass ? 18 : 8),
+            spreadRadius: useGlass ? -6 : 0,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: radius,
+          child: Padding(
+            padding: padding ?? const EdgeInsets.all(16),
+            child: child,
+          ),
+        ),
+      ),
+    );
+
+    if (useGlass) {
+      inner = ClipRRect(
+        borderRadius: radius,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          child: inner,
+        ),
+      );
+    }
 
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
+      child: Container(
         margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        decoration: BoxDecoration(
-          gradient: gradient,
-          color: gradient == null
-              ? (isDark ? AppColors.surfaceDark : AppColors.surfaceLight)
-              : null,
-          borderRadius: BorderRadius.circular(16),
-          border: isHighlighted
-              ? Border.all(color: AppColors.primaryAccent.withValues(alpha: 0.4), width: 2)
-              : Border.all(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.06)
-                      : Colors.grey.withValues(alpha: 0.08),
-                ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadowColor(isDark: isDark),
-              blurRadius: elevation ?? 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: padding ?? const EdgeInsets.all(16),
-                child: child,
-              ),
-            ),
-          ),
-        ),
+        child: inner,
       ),
     );
   }
@@ -194,32 +214,47 @@ class QuickStatChip extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: isDark ? 0.15 : 0.08),
-        borderRadius: BorderRadius.circular(12),
+        gradient: AppColors.glassSheen(isDark: isDark),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.glassBorder(isDark: isDark)),
+        boxShadow: AppColors.cardShadow(isDark: isDark),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                value,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: isDark ? 0.22 : 0.12),
+              borderRadius: BorderRadius.circular(11),
+              border: Border.all(color: color.withValues(alpha: 0.35)),
+            ),
+            child: Icon(icon, size: 17, color: color),
+          ),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: isDark ? Colors.white : AppColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                        height: 1.1,
+                      ),
+                ),
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodySmall,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ],
       ),

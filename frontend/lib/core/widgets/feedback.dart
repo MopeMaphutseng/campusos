@@ -69,7 +69,7 @@ class EmptyState extends StatelessWidget {
   }
 }
 
-class LoadingShimmer extends StatelessWidget {
+class LoadingShimmer extends StatefulWidget {
   final double? width;
   final double? height;
   final double borderRadius;
@@ -82,16 +82,46 @@ class LoadingShimmer extends StatelessWidget {
   });
 
   @override
+  State<LoadingShimmer> createState() => _LoadingShimmerState();
+}
+
+class _LoadingShimmerState extends State<LoadingShimmer>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1400),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: height ?? 16,
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? Colors.white.withValues(alpha: 0.08)
-            : Colors.grey.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(borderRadius),
-      ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final base = isDark ? Colors.white.withValues(alpha: 0.06) : Colors.grey.withValues(alpha: 0.13);
+    final highlight = isDark ? Colors.white.withValues(alpha: 0.14) : Colors.white.withValues(alpha: 0.65);
+
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (context, _) {
+        final t = _c.value;
+        return Container(
+          width: widget.width,
+          height: widget.height ?? 16,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+            gradient: LinearGradient(
+              begin: Alignment(-1.0 + 3 * t, -0.3),
+              end: Alignment(-0.2 + 3 * t, 0.3),
+              colors: [base, highlight, base],
+              stops: const [0.25, 0.5, 0.75],
+            ),
+          ),
+        );
+      },
     );
   }
 }
