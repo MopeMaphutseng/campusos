@@ -8,7 +8,7 @@
 | **API Base URL** | [https://campusos-api-36tv.onrender.com](https://campusos-api-36tv.onrender.com) |
 | **GitHub Repository** | [https://github.com/MopeMaphutseng/campusos](https://github.com/MopeMaphutseng/campusos) |
 | **Demo Video URL** | _TODO — add your 60–90s Loom/Canva link here_ |
-| **AI Tools Used** | Google Gemini (`gemini-2.5-flash`), Mistral, NVIDIA NIM — plus AI-assisted development |
+| **AI Tools Used** | Google Gemini (`gemini-3.6-flash`), Mistral, NVIDIA NIM — plus AI-assisted development |
 
 **Demo login**
 
@@ -81,10 +81,11 @@ platform for campus life.
 
 | Model / API | What it does in the app |
 |---|---|
-| **Google Gemini** (`gemini-2.5-flash`) | Primary AI provider. Powers the Campus Tutor chat, and the per-item library actions (explain / summarise / flashcards / citation). Grounded via a `getCampusContext()` builder that injects the student's live data. |
+| **Google Gemini** (`gemini-3.6-flash`) | Primary AI provider. Powers the Campus Tutor chat, and the per-item library actions (explain / summarise / flashcards / citation). Grounded via a `getCampusContext()` builder that injects the student's live data. |
 | **Mistral** | Secondary text provider for the tutor pipeline. |
 | **NVIDIA NIM** (OpenAI-compatible) | Automatic fallback provider so the tutor keeps working if the primary hits a rate limit/quota. |
 | **Open-Meteo** | Live weather shown in the student dashboard and used by the AI tutor. |
+| **Brevo** (HTTP API + SMTP) | Transactional email for 6-digit account-verification and password-reset codes. |
 | **Ollama** | Optional local provider for offline development. |
 
 Provider order is configurable via `AI_DEFAULT_PROVIDER`
@@ -157,20 +158,34 @@ This repo includes a [`render.yaml`](./render.yaml) blueprint that provisions ev
 
 ## 8. Screenshots
 
-_Add screenshots of the student dashboard, AI tutor, admin console and course-targeted
-content here._
+Product screenshots (student dashboard, AI Campus Tutor, Study Planner, Business
+Assistant, Profile & Analytics, admin console and course-targeted content) are collected
+in the project screenshots folder:
+
+> **Google Drive:** _TODO — paste the public "Anyone with the link can view" screenshots
+> folder link here before submitting._
+
+Screens captured from the live product:
 
 | | |
 |---|---|
-| ![Student dashboard](./docs/screenshots/dashboard.png) | ![AI Campus Tutor](./docs/screenshots/tutor.png) |
-| ![Admin console](./docs/screenshots/admin.png) | ![Course targeting](./docs/screenshots/targeting.png) |
+| ![](./docs/screenshots/dashboard.png) | ![](./docs/screenshots/tutor.png) |
+| ![](./docs/screenshots/admin.png) | ![](./docs/screenshots/targeting.png) |
 
 ## 9. Team Contributions
 
-- **[Your Name]** — [role]: [what you built]
-- **[Teammate Name]** — [role]: [what you built]
+This project was built **solo** by **Maphutseng 'Mope** for the NYLP AI Hackathon 2026.
 
-_Replace with the real team members and their contributions._
+- **Maphutseng 'Mope** — Solo developer (design, frontend, backend, AI integration, DevOps):
+  - Designed and built the full product: Flutter multi-tenant web frontend and NestJS API.
+  - Implemented the AI Campus Tutor (grounded context builder, multi-provider pipeline with
+    Gemini → NVIDIA NIM fallback, SSE streaming) and the per-item library AI actions.
+  - Built the Study Planner, Business Assistant and Profile & Analytics features.
+  - Built the admin console and course-code content targeting.
+  - Implemented multi-tenant security: JWT auth, tenant isolation, role-based access, and
+    6-digit email verification via Brevo.
+  - Set up deployment on Render (Docker API, static Flutter site, managed PostgreSQL) and
+    the `render.yaml` blueprint.
 
 ## 10. Known Limitations
 

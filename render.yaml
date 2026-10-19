@@ -62,15 +62,17 @@ services:
       - key: AI_DEFAULT_PROVIDER
         value: gemini
       - key: GEMINI_MODEL
-        value: gemini-2.5-flash
+        value: gemini-3.6-flash
       - key: EMAIL_VERIFICATION_ENABLED
-        value: "false"
+        value: "auto"
       # Secrets: set these in the Render dashboard (prompted on first deploy).
       - key: GEMINI_API_KEY
         sync: false
       - key: MISTRAL_API_KEY
         sync: false
       - key: NVIDIA_API_KEY
+        sync: false
+      - key: EMAIL_API_KEY
         sync: false
 
   # ---------- Frontend (Flutter web) ----------
