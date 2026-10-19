@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="A new Flutter project.">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="campusos">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>campusos</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Remove any stale service worker left by older builds, then reload once. -->
+  <script>
+    (function () {
+      if (!('serviceWorker' in navigator)) return;
+      var FLAG = 'swCleanupDone';
+      navigator.serviceWorker.getRegistrations().then(function (regs) {
+        if (!regs || regs.length === 0) return;
+        Promise.all(regs.map(function (r) { return r.unregister(); })).then(function () {
+          if (!sessionStorage.getItem(FLAG)) {
+            sessionStorage.setItem(FLAG, '1');
+            location.reload();
+          }
+        });
+      }).catch(function () {});
+    })();
+  </script>
+
+  <!-- Deploy watchdog: probe main.dart.js size (1-byte Range request) and
+       auto-reload this tab whenever a newer build is served. Open tabs pick
+       up fixes without any user action. -->
+  <script>
+    (function () {
+      var bootedSize = null;
+      function probe() {
+        fetch('main.dart.js', { headers: { 'Range': 'bytes=0-0' }, cache: 'no-store' })
+          .then(function (r) {
+            var cr = r.headers.get('content-range') || '';
+            var total = cr.split('/')[1];
+            if (!total) return;
+            if (bootedSize === null) { bootedSize = total; return; }
+            if (total !== bootedSize) location.reload();
+          })
+          .catch(function () {});
+      }
+      setInterval(probe, 15000);
+      window.addEventListener('focus', probe);
+      window.addEventListener('pageshow', probe);
+      probe();
+    })();
+  </script>
+</head>
+<body>
+  <!--
+    You can customize the "flutter_bootstrap.js" script.
+    This is useful to provide a custom configuration to the Flutter loader
+    or to give the user feedback during the initialization process.
+
+    For more details:
+    * https://docs.flutter.dev/platform-integration/web/initialization
+  -->
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# One-click deploy of CampusOS:
+#   - campusos-db   : managed PostgreSQL (free)
+#   - campusos-api  : NestJS API (Docker), runs migrations + seed on boot
+#   - campusos-web  : Flutter web app (static site, built at deploy time)
+#
+# After the first deploy, set the secret API keys on campusos-api
+# (GEMINI_API_KEY, MISTRAL_API_KEY and/or NVIDIA_API_KEY) in the Render
+# dashboard. Everything else is wired automatically.
+
+databases:
+  - name: campusos-db
+    databaseName: campusos
+    user: campusos
+    plan: free
+
+services:
+  # ---------- Backend API ----------
+  - type: web
+    name: campusos-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    # Run the (idempotent) seed, then start the API.
+    startCommand: sh -c "node dist/database/seeds/seed.js && node dist/main.js"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Use in-memory cache so no Redis instance is required.
+      - key: CACHE_STORE
+        value: memory
+      - key: DB_HOST
+        fromDatabase:
+          name: campusos-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: campusos-db
+          property: port
+      - key: DB_USER
+        fromDatabase:
+          name: campusos-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: campusos-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: campusos-db
+          property: database
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: AI_DEFAULT_PROVIDER
+        value: gemini
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: EMAIL_VERIFICATION_ENABLED
+        value: "false"
+      # Secrets: set these in the Render dashboard (prompted on first deploy).
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: MISTRAL_API_KEY
+        sync: false
+      - key: NVIDIA_API_KEY
+        sync: false
+
+  # ---------- Frontend (Flutter web) ----------
+  - type: web
+    name: campusos-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: |
+      set -e
+      if [ ! -d "$HOME/flutter" ]; then
+        git clone --depth 1 -b stable https://github.com/flutter/flutter.git "$HOME/flutter"
+      fi
+      export PATH="$PATH:$HOME/flutter/bin"
+      flutter config --enable-web --no-analytics
+      flutter pub get
+      flutter build web --release --dart-define=API_BASE_URL="$API_BASE_URL"
+    staticPublishPath: build/web
+    envVars:
+      - key: API_BASE_URL
+        fromService:
+          name: campusos-api
+          type: web
+          property: host

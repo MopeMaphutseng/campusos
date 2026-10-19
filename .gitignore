@@ -1,0 +1,47 @@
+# ---- Dependencies ----
+node_modules/
+**/node_modules/
+
+# ---- Build output ----
+backend/dist/
+**/dist/
+frontend/build/
+**/build/web/
+*.tsbuildinfo
+
+# ---- Flutter / Dart ----
+frontend/.dart_tool/
+**/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.packages
+**/.pub-cache/
+
+# ---- Environment files / secrets ----
+# Never commit real keys. Keep *.example files only.
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+
+# ---- Runtime user uploads ----
+backend/uploads/
+
+# ---- Python ----
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# ---- Logs & OS/editor cruft ----
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

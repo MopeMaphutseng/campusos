@@ -1,0 +1,20 @@
+{
+  "name": "campusos",
+  "version": "1.0.0",
+  "description": "CampusOS — The operating system for student life",
+  "private": true,
+  "scripts": {
+    "dev:api": "cd backend && npm run start:dev",
+    "dev:web": "cd frontend && flutter run -d chrome",
+    "build:api": "cd backend && npm run build",
+    "build:web": "cd frontend && flutter build web --release",
+    "test:api": "cd backend && npm test",
+    "db:migrate": "cd backend && npx typeorm migration:run -d src/config/data-source.ts",
+    "db:seed": "cd backend && npx ts-node src/database/seeds/seed.ts",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:build": "docker-compose build",
+    "lint:api": "cd backend && npm run lint",
+    "lint:web": "cd frontend && flutter analyze"
+  }
+}
