@@ -136,7 +136,7 @@ class _ResearchHubScreenState extends ConsumerState<ResearchHubScreen> {
                                       children: [
                                         Center(
                                           child: Container(width: 40, height: 4,
-                                            decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                                            decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                                         ),
                                         const SizedBox(height: 16),
                                         Text('AI Research Assistant', style: Theme.of(ctx).textTheme.titleMedium),
@@ -340,7 +340,7 @@ class _ResearchCallCard extends StatelessWidget {
                       children: [
                         Center(
                           child: Container(width: 40, height: 4,
-                            decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                            decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                         ),
                         const SizedBox(height: 16),
                         Text('Apply as Research Assistant', style: Theme.of(ctx).textTheme.titleMedium),
@@ -445,7 +445,7 @@ class _CollaborationCard extends StatelessWidget {
                         children: [
                           Center(
                             child: Container(width: 40, height: 4,
-                              decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                              decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                           ),
                           const SizedBox(height: 16),
                           Text('Join Collaboration', style: Theme.of(ctx).textTheme.titleMedium),

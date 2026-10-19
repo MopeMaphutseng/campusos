@@ -143,7 +143,7 @@ class _InnovationHubScreenState extends ConsumerState<InnovationHubScreen> {
                         children: [
                           Center(
                             child: Container(width: 40, height: 4, margin: const EdgeInsets.only(top: 12, bottom: 8),
-                              decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                              decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(16),
@@ -237,7 +237,7 @@ class _InnovationHubScreenState extends ConsumerState<InnovationHubScreen> {
                   children: [
                     Center(
                       child: Container(width: 40, height: 4,
-                        decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                        decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                     ),
                     const SizedBox(height: 16),
                     Text('New Project', style: Theme.of(ctx).textTheme.titleMedium),
@@ -320,7 +320,15 @@ class _FeaturedProjectCard extends StatelessWidget {
                   color: AppColors.secondaryAccent.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text('Featured', style: TextStyle(color: AppColors.secondaryAccent, fontSize: 10, fontWeight: FontWeight.w700)),
+                child: Text('Featured',
+                    style: TextStyle(
+                      color: AppColors.accentText(
+                        AppColors.secondaryAccent,
+                        isDark: Theme.of(context).brightness == Brightness.dark,
+                      ),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    )),
               ),
             ],
           ),
@@ -451,7 +459,7 @@ class _ProjectCard extends StatelessWidget {
                         children: [
                           Center(
                             child: Container(width: 40, height: 4,
-                              decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                              decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                           ),
                           const SizedBox(height: 16),
                           Text('Collaborate on ${project.title}', style: Theme.of(ctx).textTheme.titleMedium),

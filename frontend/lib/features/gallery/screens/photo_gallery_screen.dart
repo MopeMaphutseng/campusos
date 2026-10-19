@@ -127,7 +127,7 @@ class PhotoGalleryScreen extends StatelessWidget {
                 title: Text(
                   'Gallery',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                       ),
                 ),
                 background: Container(
@@ -244,7 +244,7 @@ class _FeaturedCard extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Colors.black.withOpacity(0.55)],
+                    colors: [Colors.transparent, Colors.black.withValues(alpha: 0.55)],
                   ),
                 ),
               ),
@@ -266,13 +266,13 @@ class _FeaturedCard extends StatelessWidget {
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 22,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Tap to view the full collection',
-                    style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 13),
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
                   ),
                 ],
               ),
@@ -294,7 +294,7 @@ class _CountBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.45),
+        color: Colors.black.withValues(alpha: 0.45),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -338,7 +338,7 @@ class _PhotoTile extends StatelessWidget {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       stops: const [0.55, 1.0],
-                      colors: [Colors.transparent, Colors.black.withOpacity(0.45)],
+                      colors: [Colors.transparent, Colors.black.withValues(alpha: 0.45)],
                     ),
                   ),
                 ),
@@ -406,7 +406,7 @@ class _StoriesTab extends StatelessWidget {
                           begin: Alignment.centerLeft,
                           end: Alignment.bottomRight,
                           stops: const [0.3, 1.0],
-                          colors: [Colors.transparent, Colors.black.withOpacity(0.55)],
+                          colors: [Colors.transparent, Colors.black.withValues(alpha: 0.55)],
                         ),
                       ),
                     ),
@@ -424,7 +424,7 @@ class _StoriesTab extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryAccent.withOpacity(0.9),
+                            color: AppColors.primaryAccent.withValues(alpha: 0.9),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -442,7 +442,7 @@ class _StoriesTab extends StatelessWidget {
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
@@ -552,7 +552,7 @@ class _FullscreenPhotoViewerState extends State<FullscreenPhotoViewer> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
+                            color: Colors.white.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -574,7 +574,7 @@ class _FullscreenPhotoViewerState extends State<FullscreenPhotoViewer> {
                       child: Text(
                         widget.photos[_index].caption,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.92),
+                          color: Colors.white.withValues(alpha: 0.92),
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),

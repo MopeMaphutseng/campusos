@@ -24,20 +24,20 @@ class QuickModulesGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final modules = [
-      _ModuleItem(LucideIcons.brain, 'AI Tutor', const Color(0xFF8B5CF6), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiTutorScreen()))),
+      _ModuleItem(LucideIcons.brain, 'AI Tutor', AppColors.violet, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiTutorScreen()))),
       _ModuleItem(LucideIcons.calendarDays, 'Timetable', AppColors.primaryAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AcademicsScreen()))),
-      _ModuleItem(LucideIcons.fileText, 'Materials', const Color(0xFF8B5CF6), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LibraryScreen()))),
+      _ModuleItem(LucideIcons.fileText, 'Materials', AppColors.violet, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LibraryScreen()))),
       _ModuleItem(LucideIcons.users, 'Mentors', AppColors.tertiaryAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MentorshipScreen()))),
       _ModuleItem(LucideIcons.mapPin, 'Campus Map', AppColors.secondaryAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CampusMapScreen()))),
       _ModuleItem(LucideIcons.heart, 'Health', AppColors.error, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HealthScreen()))),
-      _ModuleItem(LucideIcons.briefcase, 'Jobs', const Color(0xFF06B6D4), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const JobsScreen()))),
-      _ModuleItem(LucideIcons.lightbulb, 'Research', const Color(0xFFF97316), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ResearchHubScreen()))),
+      _ModuleItem(LucideIcons.briefcase, 'Jobs', AppColors.cyan, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const JobsScreen()))),
+      _ModuleItem(LucideIcons.lightbulb, 'Research', AppColors.orange, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ResearchHubScreen()))),
       _ModuleItem(LucideIcons.award, 'Scholarships', AppColors.success, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScholarshipsScreen()))),
-      _ModuleItem(LucideIcons.newspaper, 'News', const Color(0xFF14B8A6), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NewsScreen()))),
-      _ModuleItem(LucideIcons.trophy, 'Sports', const Color(0xFFEAB308), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SportsScreen()))),
+      _ModuleItem(LucideIcons.newspaper, 'News', AppColors.teal, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NewsScreen()))),
+      _ModuleItem(LucideIcons.trophy, 'Sports', AppColors.yellow, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SportsScreen()))),
       _ModuleItem(LucideIcons.sparkles, 'Campus Life', AppColors.info, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CampusLifeScreen()))),
-      _ModuleItem(LucideIcons.calendarCheck, 'Planner', const Color(0xFF7C3AED), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudyPlannerScreen()))),
-      _ModuleItem(LucideIcons.briefcase, 'Business', const Color(0xFF0EA5E9), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BusinessAssistantScreen()))),
+      _ModuleItem(LucideIcons.calendarCheck, 'Planner', AppColors.violet, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudyPlannerScreen()))),
+      _ModuleItem(LucideIcons.briefcase, 'Business', AppColors.sky, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BusinessAssistantScreen()))),
       _ModuleItem(LucideIcons.user, 'Profile', AppColors.primaryAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()))),
     ];
 
@@ -121,20 +121,20 @@ class _AcademiaPanelState extends State<_AcademiaPanel>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final base = isDark ? const Color(0xFF101C33) : const Color(0xFF1B2F5C);
+    final base = isDark ? AppColors.navyBaseDark : AppColors.navyBaseLight;
 
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
         final t = _controller.value;
-        final gold = const Color(0xFFF2C879).withValues(alpha: 0.8);
+        final gold = AppColors.gold.withValues(alpha: 0.8);
 
         return Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF1E3A8A).withValues(alpha: 0.28),
+                color: AppColors.primaryDeep.withValues(alpha: 0.28),
                 blurRadius: 32,
                 spreadRadius: -4,
                 offset: const Offset(0, 12),
@@ -150,8 +150,8 @@ class _AcademiaPanelState extends State<_AcademiaPanel>
                   end: Alignment.bottomRight,
                   colors: [
                     base,
-                    const Color(0xFF243B6B),
-                    const Color(0xFF16263F),
+                    AppColors.navyMid,
+                    AppColors.navyDeep,
                   ],
                 ),
               ),
@@ -167,8 +167,8 @@ class _AcademiaPanelState extends State<_AcademiaPanel>
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
                           colors: [
-                            const Color(0xFFF2C879).withValues(alpha: 0.28),
-                            const Color(0xFFF2C879).withValues(alpha: 0.0),
+                            AppColors.gold.withValues(alpha: 0.28),
+                            AppColors.gold.withValues(alpha: 0.0),
                           ],
                         ),
                       ),
@@ -244,7 +244,7 @@ class _CenterEmblem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gold = const Color(0xFFF2C879);
+    final gold = AppColors.gold;
     return Opacity(
       opacity: 0.85,
       child: Stack(
@@ -266,7 +266,7 @@ class _CenterEmblem extends StatelessWidget {
             height: 58,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF1B2F5C),
+              color: AppColors.navyMid,
               border: Border.all(color: gold.withValues(alpha: 0.7), width: 1.4),
               boxShadow: [
                 BoxShadow(
@@ -342,7 +342,7 @@ class _Twinkles extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rng = math.Random(7);
-    final gold = const Color(0xFFF2C879);
+    final gold = AppColors.gold;
     return Positioned.fill(
       child: CustomPaint(
         painter: _TwinklePainter(t: t, rng: rng, gold: gold),

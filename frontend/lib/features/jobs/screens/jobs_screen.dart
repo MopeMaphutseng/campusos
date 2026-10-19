@@ -114,7 +114,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
                 children: [
                   Center(
                     child: Container(width: 40, height: 4, margin: const EdgeInsets.only(top: 12, bottom: 8),
-                      decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                      decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                   ),
                   const SizedBox(height: 8),
                   const Icon(LucideIcons.fileText, size: 48, color: AppColors.primaryAccent),
@@ -305,7 +305,7 @@ class _JobCard extends StatelessWidget {
                 alignment: Alignment.center,
                 child: Text(
                   companyInitials,
-                  style: TextStyle(color: accentColor, fontWeight: FontWeight.w800, fontSize: 14),
+                  style: TextStyle(color: accentColor, fontWeight: FontWeight.w700, fontSize: 14),
                 ),
               ),
               const SizedBox(width: 12),
@@ -325,7 +325,15 @@ class _JobCard extends StatelessWidget {
                               color: AppColors.error.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text('HOT', style: TextStyle(color: AppColors.error, fontSize: 9, fontWeight: FontWeight.w800)),
+                            child: Text('HOT',
+                                style: TextStyle(
+                                  color: AppColors.accentText(
+                                    AppColors.error,
+                                    isDark: Theme.of(context).brightness == Brightness.dark,
+                                  ),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                )),
                           ),
                       ],
                     ),
@@ -377,7 +385,7 @@ class _JobCard extends StatelessWidget {
                           children: [
                             Center(
                               child: Container(width: 40, height: 4,
-                                decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                                decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                             ),
                             const SizedBox(height: 16),
                             Text('Apply for ${job.title}', style: Theme.of(ctx).textTheme.titleMedium),

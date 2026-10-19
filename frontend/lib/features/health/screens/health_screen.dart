@@ -47,7 +47,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                       gradient: const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [AppColors.error, Color(0xFFDC2626)],
+                        colors: [AppColors.error, AppColors.redDeep],
                       ),
                       padding: const EdgeInsets.all(24),
                       onTap: () => _showSOSDialog(context),
@@ -60,7 +60,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                             'Emergency SOS',
                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                   color: Colors.white,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w700,
                                 ),
                           ),
                         ],
@@ -84,7 +84,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                               children: [
                                 Center(
                                   child: Container(width: 40, height: 4,
-                                    decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                                    decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                                 ),
                                 const SizedBox(height: 16),
                                 Text('Book Appointment', style: Theme.of(ctx).textTheme.titleMedium),
@@ -233,7 +233,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                           children: [
                             Center(
                               child: Container(width: 40, height: 4,
-                                decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                                decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                             ),
                             const SizedBox(height: 16),
                             Text('Add Medication', style: Theme.of(ctx).textTheme.titleMedium),

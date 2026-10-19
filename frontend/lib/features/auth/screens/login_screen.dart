@@ -95,7 +95,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: Text(
                   'CampusOS',
                   style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                       ),
                 ),
               ),
@@ -186,7 +186,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             children: [
                               Center(
                                 child: Container(width: 40, height: 4,
-                                  decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                                  decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                               ),
                               const SizedBox(height: 16),
                               Text('Reset Password', style: Theme.of(ctx).textTheme.titleMedium),
@@ -258,7 +258,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       children: [
                         Center(
                           child: Container(width: 40, height: 4, margin: const EdgeInsets.only(top: 12, bottom: 8),
-                            decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                            decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                         ),
                         Padding(
                           padding: const EdgeInsets.all(16),
@@ -430,7 +430,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),

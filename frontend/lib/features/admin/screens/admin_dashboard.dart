@@ -387,7 +387,7 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.withOpacity(0.15)),
+        side: BorderSide(color: Colors.grey.withValues(alpha: 0.15)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -415,7 +415,7 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
                               label: const Text('All students', style: TextStyle(fontSize: 10)),
                               padding: EdgeInsets.zero,
                               visualDensity: VisualDensity.compact,
-                              backgroundColor: AppColors.success.withOpacity(0.15),
+                              backgroundColor: AppColors.success.withValues(alpha: 0.15),
                             ),
                           ]
                         : targets
@@ -423,7 +423,7 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
                                   label: Text(c, style: const TextStyle(fontSize: 10)),
                                   padding: EdgeInsets.zero,
                                   visualDensity: VisualDensity.compact,
-                                  backgroundColor: AppColors.primaryAccent.withOpacity(0.15),
+                                  backgroundColor: AppColors.primaryAccent.withValues(alpha: 0.15),
                                 ))
                             .toList(),
                   ),

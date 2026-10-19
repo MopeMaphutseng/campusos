@@ -111,7 +111,7 @@ class _NewsScreenState extends ConsumerState<NewsScreen> {
                           children: [
                             Center(
                               child: Container(width: 40, height: 4,
-                                decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                                decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                             ),
                             const SizedBox(height: 16),
                             Text('Submit Your Startup Idea', style: Theme.of(ctx).textTheme.titleMedium),

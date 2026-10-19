@@ -106,7 +106,7 @@ class _SportsScreenState extends ConsumerState<SportsScreen> {
                     color: AppColors.error,
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Text('LIVE', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800)),
+                  child: const Text('LIVE', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w700)),
                 ),
                 const SizedBox(width: 6),
                 const Text('Premier League', style: TextStyle(color: Colors.white70, fontSize: 11)),
@@ -128,7 +128,7 @@ class _SportsScreenState extends ConsumerState<SportsScreen> {
                     ],
                   ),
                 ),
-                Text('2 – 1', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800)),
+                Text('2 – 1', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w700)),
                 const Spacer(),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -277,7 +277,7 @@ class _FixtureCard extends StatelessWidget {
               ),
               Text('vs', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary)),
               const SizedBox(width: 8),
-              Text(fixture.score ?? '--', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+              Text(fixture.score ?? '--', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
               const SizedBox(width: 8),
               Text('--', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary)),
               Expanded(

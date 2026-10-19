@@ -39,12 +39,15 @@ class NextClassCard extends StatelessWidget {
                         color: AppColors.secondaryAccent.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Text(
+                      child: Text(
                         'NEXT CLASS',
                         style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.secondaryAccent,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.accentText(
+                            AppColors.secondaryAccent,
+                            isDark: Theme.of(context).brightness == Brightness.dark,
+                          ),
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -72,7 +75,7 @@ class NextClassCard extends StatelessWidget {
                   info?['timeUntil'] ?? '45m',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       color: AppColors.primaryAccent,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                     ),
               ),
               Text(

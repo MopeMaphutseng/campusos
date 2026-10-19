@@ -57,7 +57,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                         children: [
                           Center(
                             child: Container(width: 40, height: 4, margin: const EdgeInsets.only(top: 12, bottom: 8),
-                              decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                              decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(16),
@@ -297,7 +297,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.only(top: 12, bottom: 8),
-              child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+              child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -414,7 +414,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             children: [
               Center(
                 child: Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                  decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
               ),
               Row(
                 children: [
@@ -489,7 +489,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             children: [
               Center(
                 child: Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                  decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
               ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -148,7 +148,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                   children: [
                     Center(
                       child: Container(width: 40, height: 4,
-                        decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                        decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                     ),
                     const SizedBox(height: 16),
                     Text('Post a Listing', style: Theme.of(ctx).textTheme.titleMedium),
@@ -230,7 +230,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
             children: [
               Center(
                 child: Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                  decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
               ),
               Container(
                 height: 180,
@@ -253,7 +253,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                     child: Text(listing.title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
                   ),
                   Text('${listing.currency} ${listing.price.toStringAsFixed(0)}',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.tertiaryAccent, fontWeight: FontWeight.w800)),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.tertiaryAccent, fontWeight: FontWeight.w700)),
                 ],
               ),
               const SizedBox(height: 8),
@@ -341,7 +341,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -471,7 +471,7 @@ class _ListingCard extends StatelessWidget {
                 '${listing.currency} ${listing.price.toStringAsFixed(0)}',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: AppColors.tertiaryAccent,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                     ),
               ),
             ],

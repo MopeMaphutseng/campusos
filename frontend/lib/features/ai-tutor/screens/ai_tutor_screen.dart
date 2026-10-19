@@ -423,7 +423,7 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
           border: msg.isUser
               ? null
               : Border.all(
-                  color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.grey.withValues(alpha: 0.08),
+                  color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.06),
                 ),
           boxShadow: [
             BoxShadow(
@@ -442,7 +442,7 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                 color: msg.isUser
                     ? Colors.white
                     : msg.isError
-                        ? AppColors.error
+                        ? AppColors.accentText(AppColors.error, isDark: isDark)
                         : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
                 fontSize: 14,
                 height: 1.5,
@@ -452,12 +452,15 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(LucideIcons.shield, size: 12, color: AppColors.warning),
+                  Icon(LucideIcons.shield, size: 12, color: AppColors.accentText(AppColors.warning, isDark: isDark)),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       msg.notice!,
-                      style: TextStyle(fontSize: 11, color: AppColors.warning),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.accentText(AppColors.warning, isDark: isDark),
+                      ),
                     ),
                   ),
                 ],
@@ -472,8 +475,8 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                   style: TextStyle(
                     fontSize: 10,
                     color: msg.isUser
-                        ? Colors.white.withValues(alpha: 0.6)
-                        : AppColors.textSecondary,
+                        ? Colors.white.withValues(alpha: 0.92)
+                        : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                   ),
                 ),
                 if (msg.isStreaming) ...[

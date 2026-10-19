@@ -198,7 +198,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _statsGrid(Map<String, dynamic> s, bool isDark) {
     final items = [
       ('Tutor Chats', s['sessions'] ?? 0, LucideIcons.messageCircle, AppColors.primaryAccent),
-      ('Messages', s['messages'] ?? 0, LucideIcons.messageSquare, const Color(0xFF8B5CF6)),
+      ('Messages', s['messages'] ?? 0, LucideIcons.messageSquare, AppColors.violet),
       ('Courses', s['enrolledCourses'] ?? 0, LucideIcons.bookOpen, AppColors.tertiaryAccent),
       ('Streak', '${s['currentStreak'] ?? 0}d', LucideIcons.flame, AppColors.warning),
       ('Avg Grade', s['averageGrade'] != null ? '${s['averageGrade']}%' : '—', LucideIcons.trendingUp, AppColors.success),
@@ -219,7 +219,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.grey.withValues(alpha: 0.08),
+              color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.06),
             ),
           ),
           child: Column(
@@ -233,7 +233,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               Text(
                 it.$1,
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                style: TextStyle(fontSize: 11, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -255,7 +255,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.grey.withValues(alpha: 0.08),
+          color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.06),
         ),
       ),
       child: Column(
@@ -271,7 +271,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               Text(
                 '${g['progress']}/${g['target']} ${g['unit'] ?? ''}',
-                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                style: TextStyle(fontSize: 12, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
               ),
             ],
           ),
@@ -307,7 +307,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             border: Border.all(
               color: earned
                   ? AppColors.secondaryAccent.withValues(alpha: 0.4)
-                  : (isDark ? Colors.white.withValues(alpha: 0.06) : Colors.grey.withValues(alpha: 0.1)),
+                  : (isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.06)),
             ),
           ),
           child: Column(
@@ -331,7 +331,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Text(
                 a['description']?.toString() ?? '',
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 9, color: AppColors.textSecondary),
+                style: TextStyle(fontSize: 9, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),

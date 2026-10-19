@@ -86,7 +86,7 @@ class _AuroraPainter extends CustomPainter {
       ..shader = const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFF070B14), Color(0xFF0A1020), Color(0xFF070B14)],
+        colors: [AppColors.canvasDark, AppColors.navyBaseDark, AppColors.canvasDark],
       ).createShader(Offset.zero & size);
     canvas.drawRect(Offset.zero & size, base);
 
@@ -102,9 +102,9 @@ class _AuroraPainter extends CustomPainter {
       canvas.drawCircle(Offset(cx, cy), r, paint);
     }
 
-    blob(const Color(0xFF2563EB), 0.0, 0.12, 0.06, 0.85);
-    blob(const Color(0xFF7C3AED), 0.35, 0.92, 0.22, 0.70);
-    blob(const Color(0xFF06B6D4), 0.70, 0.30, 0.55, 0.60);
+    blob(AppColors.primaryDeep, 0.0, 0.12, 0.06, 0.85);
+    blob(AppColors.violet, 0.35, 0.92, 0.22, 0.70);
+    blob(AppColors.cyan, 0.70, 0.30, 0.55, 0.60);
   }
 
   @override

@@ -58,7 +58,7 @@ class DashboardScreen extends ConsumerWidget {
                     Text(
                       'CampusOS',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w700,
                           ),
                     ),
                   ],

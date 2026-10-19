@@ -86,7 +86,7 @@ final _demoEvents = [
     gradient: const LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+      colors: [AppColors.violet, AppColors.indigo],
     ),
   ),
   _EventData(
@@ -103,7 +103,7 @@ final _demoEvents = [
     gradient: const LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [Color(0xFF06B6D4), Color(0xFF0891B2)],
+      colors: [AppColors.cyan, AppColors.cyanText],
     ),
   ),
   _EventData(
@@ -120,7 +120,7 @@ final _demoEvents = [
     gradient: const LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [Color(0xFFF97316), Color(0xFFEA580C)],
+      colors: [AppColors.orange, AppColors.orangeText],
     ),
   ),
   _EventData(
@@ -176,7 +176,7 @@ final _demoEvents = [
     gradient: const LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [Color(0xFF10B981), Color(0xFF059669)],
+      colors: [AppColors.tertiaryAccent, AppColors.emeraldText],
     ),
   ),
 ];
@@ -185,8 +185,8 @@ final _categoryColors = {
   EventCategory.academic: AppColors.primaryAccent,
   EventCategory.sports: AppColors.warning,
   EventCategory.social: AppColors.tertiaryAccent,
-  EventCategory.career: const Color(0xFF8B5CF6),
-  EventCategory.cultural: const Color(0xFF06B6D4),
+  EventCategory.career: AppColors.violet,
+  EventCategory.cultural: AppColors.cyan,
 };
 
 final _categoryIcons = {
@@ -406,7 +406,7 @@ class _EventDetailSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.white24 : Colors.grey.shade300,
+                  color: isDark ? Colors.white24 : AppColors.skeletonBase(),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),

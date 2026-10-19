@@ -96,7 +96,7 @@ class _PrintingScreenState extends ConsumerState<PrintingScreen> {
                           children: [
                             Center(
                               child: Container(width: 40, height: 4, margin: const EdgeInsets.only(top: 12, bottom: 8),
-                                decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                                decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                             ),
                             Padding(
                               padding: const EdgeInsets.all(16),
@@ -156,7 +156,7 @@ class _PrintingScreenState extends ConsumerState<PrintingScreen> {
                           children: [
                             Center(
                               child: Container(width: 40, height: 4, margin: const EdgeInsets.only(top: 12, bottom: 8),
-                                decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                                decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                             ),
                             const SizedBox(height: 16),
                             const Icon(LucideIcons.upload, size: 48, color: AppColors.primaryAccent),
@@ -219,7 +219,7 @@ class _PrintingScreenState extends ConsumerState<PrintingScreen> {
                         children: [
                           Center(
                             child: Container(width: 40, height: 4, margin: const EdgeInsets.only(top: 12, bottom: 8),
-                              decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                              decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(16),

@@ -36,22 +36,22 @@ class _WellnessScreenState extends ConsumerState<WellnessScreen> {
   ];
 
   Future<void> _showSosDialog() async {
+    final theme = Theme.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surfaceLight,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(LucideIcons.phoneCall, color: Colors.red, size: 22),
-            SizedBox(width: 10),
-            Text('Emergency SOS', style: TextStyle(color: AppColors.textPrimary)),
+            const Icon(LucideIcons.phoneCall, color: AppColors.redDeep, size: 22),
+            const SizedBox(width: 10),
+            Text('Emergency SOS', style: theme.textTheme.titleMedium),
           ],
         ),
-        content: const Text(
+        content: Text(
           'If you are in immediate danger or need urgent help, please call campus security or a crisis helpline.\n\n'
           'Would you like to proceed to emergency contacts?',
-          style: TextStyle(color: AppColors.textSecondary),
+          style: theme.textTheme.bodyMedium,
         ),
         actions: [
           TextButton(
@@ -60,7 +60,7 @@ class _WellnessScreenState extends ConsumerState<WellnessScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.redDeep,
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
@@ -74,7 +74,7 @@ class _WellnessScreenState extends ConsumerState<WellnessScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Emergency contacts displayed. Please call for help.'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.redDeep,
         ),
       );
     }
@@ -83,12 +83,9 @@ class _WellnessScreenState extends ConsumerState<WellnessScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
         title: const Text('Wellness'),
         centerTitle: true,
-        backgroundColor: AppColors.surfaceLight,
-        elevation: 0,
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
@@ -113,17 +110,11 @@ class _WellnessScreenState extends ConsumerState<WellnessScreen> {
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w700,
-        color: AppColors.textPrimary,
-      ),
-    );
+    return Text(title, style: Theme.of(context).textTheme.headlineSmall);
   }
 
   Widget _buildHeroCard() {
+    final theme = Theme.of(context);
     return CampusCard(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -134,28 +125,21 @@ class _WellnessScreenState extends ConsumerState<WellnessScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryAccent.withOpacity(0.15),
+                  color: AppColors.primaryAccent.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(LucideIcons.heart, color: AppColors.primaryAccent, size: 28),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Mental Health & Wellness',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    SizedBox(height: 4),
+                    Text('Mental Health & Wellness', style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 4),
                     Text(
                       'You are not alone. We are here for you.',
-                      style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                      style: theme.textTheme.bodySmall,
                     ),
                   ],
                 ),
@@ -165,25 +149,22 @@ class _WellnessScreenState extends ConsumerState<WellnessScreen> {
           const SizedBox(height: 16),
           const Divider(),
           const SizedBox(height: 12),
-          const Row(
+          Row(
             children: [
-              Icon(LucideIcons.phone, size: 16, color: AppColors.textSecondary),
-              SizedBox(width: 8),
-              Text(
-                '24/7 Helpline: 1800-123-4567',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                  letterSpacing: 0.3,
+              Icon(LucideIcons.phone, size: 16, color: theme.textTheme.bodySmall?.color),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '24/7 Helpline: 1800-123-4567',
+                  style: theme.textTheme.titleSmall?.copyWith(letterSpacing: 0.3),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'Free, confidential support for all students.',
-            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            style: theme.textTheme.bodySmall,
           ),
         ],
       ),
@@ -198,6 +179,7 @@ class _WellnessScreenState extends ConsumerState<WellnessScreen> {
     Color? backgroundColor,
     VoidCallback? onTap,
   }) {
+    final theme = Theme.of(context);
     return CampusCard(
       onTap: onTap,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -206,7 +188,7 @@ class _WellnessScreenState extends ConsumerState<WellnessScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: (backgroundColor ?? AppColors.primaryAccent).withOpacity(0.12),
+              color: (backgroundColor ?? AppColors.primaryAccent).withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: iconColor ?? AppColors.primaryAccent, size: 24),
@@ -216,23 +198,13 @@ class _WellnessScreenState extends ConsumerState<WellnessScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
+                Text(title, style: theme.textTheme.titleSmall),
                 const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                ),
+                Text(subtitle, style: theme.textTheme.bodySmall),
               ],
             ),
           ),
-          const Icon(LucideIcons.chevronRight, size: 18, color: AppColors.textSecondary),
+          Icon(LucideIcons.chevronRight, size: 18, color: theme.textTheme.bodySmall?.color),
         ],
       ),
     );
@@ -259,12 +231,13 @@ class _WellnessScreenState extends ConsumerState<WellnessScreen> {
       icon: LucideIcons.phone,
       title: 'Crisis Support',
       subtitle: 'Immediate help when you need it',
-      iconColor: Colors.red,
-      backgroundColor: Colors.red,
+      iconColor: AppColors.redDeep,
+      backgroundColor: AppColors.redDeep,
     );
   }
 
   Widget _buildTipCard(_WellnessTip tip) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: CampusCard(
@@ -277,28 +250,21 @@ class _WellnessScreenState extends ConsumerState<WellnessScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryAccent.withOpacity(0.1),
+                    color: AppColors.primaryAccent.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(LucideIcons.bookOpen, size: 18, color: AppColors.primaryAccent),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(
-                    tip.title,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
+                  child: Text(tip.title, style: theme.textTheme.titleSmall),
                 ),
               ],
             ),
             const SizedBox(height: 10),
             Text(
               tip.preview,
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              style: theme.textTheme.bodySmall,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -329,10 +295,10 @@ class _WellnessScreenState extends ConsumerState<WellnessScreen> {
               style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, letterSpacing: 0.5),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.redDeep,
               foregroundColor: Colors.white,
               elevation: 4,
-              shadowColor: Colors.red.withOpacity(0.4),
+              shadowColor: AppColors.redDeep.withValues(alpha: 0.4),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             ),
           ),

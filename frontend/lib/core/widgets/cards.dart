@@ -47,7 +47,7 @@ class CampusCard extends StatelessWidget {
                     ? AppColors.glassBorder(isDark: isDark)
                     : (isDark
                         ? Colors.white.withValues(alpha: 0.06)
-                        : Colors.grey.withValues(alpha: 0.08)),
+                        : Colors.black.withValues(alpha: 0.06)),
               ),
         boxShadow: [
           BoxShadow(

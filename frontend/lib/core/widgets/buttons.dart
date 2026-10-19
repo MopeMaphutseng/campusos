@@ -170,19 +170,20 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: isSmall ? 6 : 10,
         vertical: isSmall ? 2 : 4,
       ),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
+        color: color.withValues(alpha: isDark ? 0.18 : 0.12),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
         text,
         style: TextStyle(
-          color: color,
+          color: AppColors.accentText(color, isDark: isDark),
           fontSize: isSmall ? 10 : 12,
           fontWeight: FontWeight.w600,
         ),

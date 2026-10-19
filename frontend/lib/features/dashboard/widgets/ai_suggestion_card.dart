@@ -23,7 +23,7 @@ class AISuggestionCard extends StatelessWidget {
             height: 52,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+                colors: [AppColors.violet, AppColors.indigo],
               ),
               borderRadius: BorderRadius.circular(14),
             ),
@@ -39,15 +39,15 @@ class AISuggestionCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+                        color: AppColors.violet.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Text(
+                      child: Text(
                         'AI SUGGESTION',
                         style: TextStyle(
                           fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF8B5CF6),
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.accentText(AppColors.violet, isDark: isDark),
                           letterSpacing: 0.5,
                         ),
                       ),

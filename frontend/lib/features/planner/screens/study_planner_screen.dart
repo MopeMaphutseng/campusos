@@ -148,7 +148,7 @@ class _StudyPlannerScreenState extends ConsumerState<StudyPlannerScreen> {
               prefixIcon: const Icon(LucideIcons.search, size: 18),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: BorderSide(color: AppColors.hairline(isDark: Theme.of(context).brightness == Brightness.dark)),
               ),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
@@ -197,14 +197,14 @@ class _StudyPlannerScreenState extends ConsumerState<StudyPlannerScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 16, color: selected ? Colors.white : AppColors.textSecondary),
+              Icon(icon, size: 16, color: selected ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
               const SizedBox(width: 6),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: selected ? Colors.white : AppColors.textSecondary,
+                  color: selected ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                 ),
               ),
             ],
@@ -320,7 +320,7 @@ class _StudyPlannerScreenState extends ConsumerState<StudyPlannerScreen> {
         color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.grey.withValues(alpha: 0.08),
+          color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.06),
         ),
       ),
       child: Column(
@@ -378,7 +378,7 @@ class _StudyPlannerScreenState extends ConsumerState<StudyPlannerScreen> {
         color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.grey.withValues(alpha: 0.08),
+          color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.06),
         ),
       ),
       child: Column(
@@ -406,9 +406,11 @@ class _StudyPlannerScreenState extends ConsumerState<StudyPlannerScreen> {
                     const SnackBar(content: Text('Copied'), duration: Duration(seconds: 1)),
                   );
                 },
-                child: const Padding(
-                  padding: EdgeInsets.all(4),
-                  child: Icon(LucideIcons.copy, size: 14, color: AppColors.textSecondary),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(LucideIcons.copy,
+                      size: 14,
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                 ),
               ),
             ],
@@ -424,8 +426,15 @@ class _StudyPlannerScreenState extends ConsumerState<StudyPlannerScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Model answer',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.tertiaryAccent)),
+                Text('Model answer',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.accentText(
+                        AppColors.tertiaryAccent,
+                        isDark: Theme.of(context).brightness == Brightness.dark,
+                      ),
+                    )),
                 const SizedBox(height: 4),
                 Text(q['answer']?.toString() ?? '', style: Theme.of(context).textTheme.bodyMedium),
               ],

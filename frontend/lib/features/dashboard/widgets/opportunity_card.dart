@@ -48,7 +48,7 @@ class OpportunityCard extends StatelessWidget {
                         'HIGHLIGHTED',
                         style: TextStyle(
                           fontSize: 9,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w700,
                           color: AppColors.tertiaryAccent,
                           letterSpacing: 0.5,
                         ),

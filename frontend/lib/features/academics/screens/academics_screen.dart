@@ -289,7 +289,7 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
             children: [
               Center(
                 child: Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                  decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
               ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -300,7 +300,7 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
                       color: course.color.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Text(course.code, style: TextStyle(color: course.color, fontWeight: FontWeight.w800, fontSize: 18)),
+                    child: Text(course.code, style: TextStyle(color: course.color, fontWeight: FontWeight.w700, fontSize: 18)),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -560,20 +560,20 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
                 children: [
                   Center(
                     child: Container(width: 40, height: 4, margin: const EdgeInsets.only(top: 12, bottom: 8),
-                      decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                      decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Text('Enrollment Deadline', style: Theme.of(ctx).textTheme.titleMedium),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Deadline'),
+                            const Text('Deadline'),
                             Text('August 30, 2026', style: TextStyle(fontWeight: FontWeight.w600)),
                           ],
                         ),
@@ -582,7 +582,14 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('Days Remaining'),
-                            Text('31 days', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.warning)),
+                            Text('31 days',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.accentText(
+                                    AppColors.warning,
+                                    isDark: Theme.of(context).brightness == Brightness.dark,
+                                  ),
+                                )),
                           ],
                         ),
                         SizedBox(height: 8),
@@ -590,7 +597,14 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('Late Fee'),
-                            Text('M 500', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.error)),
+                            Text('M 500',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.accentText(
+                                    AppColors.error,
+                                    isDark: Theme.of(context).brightness == Brightness.dark,
+                                  ),
+                                )),
                           ],
                         ),
                       ],
@@ -620,7 +634,7 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
                       children: [
                         Center(
                           child: Container(width: 40, height: 4,
-                            decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                            decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                         ),
                         const SizedBox(height: 16),
                         Row(
@@ -854,7 +868,7 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
                             g.grade,
                             style: TextStyle(
                               color: _gradeColor(g.grade),
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w700,
                               fontSize: 16,
                             ),
                           ),
@@ -903,7 +917,7 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
       children: [
         Text(value, style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               color: color,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
             )),
         const SizedBox(height: 4),
         Text(label, style: Theme.of(context).textTheme.bodySmall),

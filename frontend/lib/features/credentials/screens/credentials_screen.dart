@@ -101,7 +101,7 @@ class _CredentialsScreenState extends ConsumerState<CredentialsScreen> {
                         children: [
                           Center(
                             child: Container(width: 40, height: 4, margin: const EdgeInsets.only(top: 12, bottom: 8),
-                              decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                              decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
                           ),
                           const SizedBox(height: 16),
                           const Icon(LucideIcons.scanLine, size: 64, color: AppColors.primaryAccent),
@@ -223,7 +223,7 @@ class _CredentialsScreenState extends ConsumerState<CredentialsScreen> {
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 32,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 Text(
@@ -394,7 +394,7 @@ class _CredentialCard extends StatelessWidget {
                     credential.issuerInitials,
                     style: TextStyle(
                       color: credential.color,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                       fontSize: 14,
                     ),
                   ),

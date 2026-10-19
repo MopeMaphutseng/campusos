@@ -36,12 +36,15 @@ class DeadlineCountdownCard extends StatelessWidget {
                         color: AppColors.warning.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Text(
+                      child: Text(
                         'DEADLINE',
                         style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.warning,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.accentText(
+                            AppColors.warning,
+                            isDark: Theme.of(context).brightness == Brightness.dark,
+                          ),
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -69,7 +72,7 @@ class DeadlineCountdownCard extends StatelessWidget {
                 dl?['daysLeft'] ?? '2d',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       color: AppColors.warning,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                     ),
               ),
               Text(

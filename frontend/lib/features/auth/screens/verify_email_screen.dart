@@ -98,7 +98,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   maxLength: 6,
-                  style: const TextStyle(fontSize: 28, letterSpacing: 8, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 28, letterSpacing: 8, fontWeight: FontWeight.w700),
                   decoration: const InputDecoration(counterText: '', hintText: '------'),
                 ),
                 if (_error != null) ...[

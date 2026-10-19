@@ -38,7 +38,7 @@ class MomentsShowcaseCard extends StatelessWidget {
                     children: [
                       const Text(
                         'Moments',
-                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                       ),
                       Text(
                         '${kCampusMedia.length} photos & videos in the gallery',
@@ -87,7 +87,7 @@ class MomentsShowcaseCard extends StatelessWidget {
                               gradient: LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
-                                colors: [Colors.transparent, Colors.black.withOpacity(0.5)],
+                                colors: [Colors.transparent, Colors.black.withValues(alpha: 0.5)],
                               ),
                             ),
                           ),
