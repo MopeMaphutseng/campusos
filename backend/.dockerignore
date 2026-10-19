@@ -1,0 +1,12 @@
+# Keep the Docker build context small and secret-free
+node_modules
+dist
+coverage
+uploads
+.env
+.env.*
+!.env.example
+*.log
+.git
+.gitignore
+.DS_Store
