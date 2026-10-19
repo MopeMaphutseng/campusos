@@ -13,6 +13,7 @@ import 'package:campusos/features/dashboard/widgets/weather_widget.dart';
 import 'package:campusos/features/dashboard/widgets/deadline_countdown_card.dart';
 import 'package:campusos/features/dashboard/widgets/moments_showcase_card.dart';
 import 'package:campusos/features/notifications/screens/notifications_screen.dart';
+import 'package:campusos/features/profile/screens/profile_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -65,9 +66,15 @@ class DashboardScreen extends ConsumerWidget {
                   tooltip: 'Notifications',
                 ),
                 const SizedBox(width: 8),
-                const UserAvatar(
-                  initials: 'JD',
-                  size: 36,
+                GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                  ),
+                  child: const UserAvatar(
+                    initials: 'JD',
+                    size: 36,
+                  ),
                 ),
                 const SizedBox(width: 12),
               ],

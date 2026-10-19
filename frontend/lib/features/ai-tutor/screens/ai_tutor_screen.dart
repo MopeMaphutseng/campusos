@@ -1,8 +1,13 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:campusos/core/services/api_service.dart';
+import 'package:campusos/core/services/tutor_stream.dart';
+import 'package:campusos/core/services/tutor_stream_event.dart';
 import 'package:campusos/core/theme/app_colors.dart';
 import 'package:campusos/core/widgets/widgets.dart';
 
@@ -91,8 +96,115 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
     });
     _scrollToEnd();
 
+    String sessionId;
     try {
-      final sessionId = await _ensureSession();
+      sessionId = await _ensureSession();
+    } on DioException catch (e) {
+      _failWith(_errorText(e));
+      return;
+    }
+
+    // Prefer true token-by-token streaming (web). On platforms without a
+    // browser transport the stream is empty and we fall back to the blocking
+    // request below, so this is strictly additive.
+    var streamed = false;
+    try {
+      streamed = await _streamReply(sessionId, text);
+    } catch (_) {
+      streamed = false;
+    }
+    if (streamed) return;
+
+    await _sendBlocking(sessionId, text);
+  }
+
+  _ChatMessage _addStreamingMessage() {
+    final msg = _ChatMessage(
+      text: '',
+      isUser: false,
+      timestamp: 'Now',
+      isStreaming: true,
+    );
+    setState(() {
+      _isTyping = false;
+      _messages.add(msg);
+    });
+    _scrollToEnd();
+    return msg;
+  }
+
+  /// Streams the reply, appending tokens to the last bubble as they arrive.
+  /// Returns true if any content was delivered (so the caller skips the
+  /// blocking request); false means nothing arrived and the caller should fall
+  /// back.
+  Future<bool> _streamReply(String sessionId, String content) async {
+    final api = ref.read(apiServiceProvider);
+    final headers = <String, String>{
+      'Authorization': 'Bearer ${api.accessToken ?? ''}',
+      'X-University-ID': api.universityId,
+    };
+
+    _ChatMessage? streaming;
+    var gotToken = false;
+
+    final stream = streamTutorReply(
+      baseUrl: api.dio.options.baseUrl,
+      path: '/api/v1/ai-tutor/sessions/$sessionId/messages/stream',
+      headers: headers,
+      jsonBody: jsonEncode({'content': content}),
+    );
+
+    try {
+      await for (final AiStreamEvent event in stream) {
+        if (event.isReady) {
+          setState(() => _isTyping = false);
+          continue;
+        }
+        if (event.isToken) {
+          gotToken = true;
+          streaming ??= _addStreamingMessage();
+          setState(() {
+            streaming!.text += event.content ?? '';
+          });
+          _scrollToEnd();
+          continue;
+        }
+        if (event.isError) {
+          if (!gotToken) {
+            // Nothing shown yet: let the blocking path surface a proper error.
+            throw StateError(event.error ?? 'stream failed');
+          }
+          setState(() {
+            streaming?.isStreaming = false;
+            streaming?.isError = true;
+            if (event.error != null && event.error!.isNotEmpty) {
+              streaming?.text = event.error!;
+            }
+          });
+          break;
+        }
+        if (event.isDone) break;
+      }
+    } catch (_) {
+      if (!gotToken) return false;
+    }
+
+    if (!gotToken) return false;
+
+    setState(() {
+      streaming?.isStreaming = false;
+      if (streaming != null && streaming.text.trim().isEmpty) {
+        streaming.text = 'The tutor returned an empty response.';
+      }
+      _isTyping = false;
+      _sending = false;
+    });
+    _scrollToEnd();
+    return true;
+  }
+
+  Future<void> _sendBlocking(String sessionId, String text) async {
+    try {
       final api = ref.read(apiServiceProvider);
       final response = await api.post(
         '/api/v1/ai-tutor/sessions/$sessionId/messages',
@@ -114,17 +226,22 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
         ));
       });
     } on DioException catch (e) {
-      setState(() {
-        _isTyping = false;
-        _sending = false;
-        _messages.add(_ChatMessage(
-          text: _errorText(e),
-          isUser: false,
-          timestamp: 'Now',
-          isError: true,
-        ));
-      });
+      _failWith(_errorText(e));
     }
+    _scrollToEnd();
+  }
+
+  void _failWith(String message) {
+    setState(() {
+      _isTyping = false;
+      _sending = false;
+      _messages.add(_ChatMessage(
+        text: message,
+        isUser: false,
+        timestamp: 'Now',
+        isError: true,
+      ));
+    });
     _scrollToEnd();
   }
 
@@ -235,7 +352,10 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
               itemBuilder: (context, index) {
                 if (index == _messages.length) return _typingIndicator(isDark);
                 final msg = _messages[index];
-                return _messageBubble(msg, isDark);
+                return _BubbleEntrance(
+                  key: ObjectKey(msg),
+                  child: _messageBubble(msg, isDark),
+                );
               },
             ),
           ),
@@ -344,14 +464,28 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
               ),
             ],
             const SizedBox(height: 6),
-            Text(
-              msg.timestamp,
-              style: TextStyle(
-                fontSize: 10,
-                color: msg.isUser
-                    ? Colors.white.withValues(alpha: 0.6)
-                    : AppColors.textSecondary,
-              ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  msg.timestamp,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: msg.isUser
+                        ? Colors.white.withValues(alpha: 0.6)
+                        : AppColors.textSecondary,
+                  ),
+                ),
+                if (msg.isStreaming) ...[
+                  const SizedBox(width: 8),
+                  _streamingCaret(msg.isUser),
+                ],
+                if (!msg.isUser && !msg.isStreaming && !msg.isError && msg.text.trim().isNotEmpty) ...[
+                  const Spacer(),
+                  const SizedBox(width: 8),
+                  _copyButton(msg.text),
+                ],
+              ],
             ),
           ],
         ),
@@ -400,6 +534,42 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _streamingCaret(bool isUser) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.2, end: 1.0),
+      duration: const Duration(milliseconds: 700),
+      curve: Curves.easeInOut,
+      builder: (context, value, child) {
+        return Container(
+          width: 6,
+          height: 12,
+          decoration: BoxDecoration(
+            color: (isUser ? Colors.white : AppColors.primaryAccent)
+                .withValues(alpha: value),
+            borderRadius: BorderRadius.circular(2),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _copyButton(String text) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(4),
+      onTap: () async {
+        await Clipboard.setData(ClipboardData(text: text));
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Copied to clipboard'), duration: Duration(seconds: 1)),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Icon(LucideIcons.copy, size: 13, color: AppColors.textSecondary),
+      ),
     );
   }
 
@@ -461,18 +631,55 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
   }
 }
 
+class _BubbleEntrance extends StatefulWidget {
+  final Widget child;
+  const _BubbleEntrance({super.key, required this.child});
+
+  @override
+  State<_BubbleEntrance> createState() => _BubbleEntranceState();
+}
+
+class _BubbleEntranceState extends State<_BubbleEntrance>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+  )..forward();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final curved = CurvedAnimation(parent: _c, curve: Curves.easeOutCubic);
+    return FadeTransition(
+      opacity: curved,
+      child: SlideTransition(
+        position: Tween<Offset>(begin: const Offset(0, 0.12), end: Offset.zero)
+            .animate(curved),
+        child: widget.child,
+      ),
+    );
+  }
+}
+
 class _ChatMessage {
-  final String text;
+  String text;
   final bool isUser;
   final String timestamp;
   final String? notice;
-  final bool isError;
+  bool isError;
+  bool isStreaming;
 
-  const _ChatMessage({
+  _ChatMessage({
     required this.text,
     required this.isUser,
     required this.timestamp,
     this.notice,
     this.isError = false,
+    this.isStreaming = false,
   });
 }

@@ -62,6 +62,12 @@ export class AIService {
   private readonly usageLogs: AIUsageLog[] = [];
   private readonly MAX_LOGS = 10_000;
 
+  // Provider availability was previously probed with a real network request on
+  // every single generation, adding a full round-trip of latency before the
+  // answer even started. Cache the result briefly so the hot path is instant.
+  private readonly availabilityCache = new Map<AIProvider, { at: number; available: boolean }>();
+  private readonly AVAILABILITY_TTL_MS = 60 * 1000;
+
   constructor(
     private config: ConfigService,
     private claudeProvider: ClaudeProvider,
@@ -175,6 +181,22 @@ export class AIService {
     return this.universityConfigs.get(universityId);
   }
 
+  /** Cached availability probe (see availabilityCache). */
+  private async isProviderAvailable(provider: IAiProvider): Promise<boolean> {
+    const cached = this.availabilityCache.get(provider.provider);
+    if (cached && Date.now() - cached.at < this.AVAILABILITY_TTL_MS) {
+      return cached.available;
+    }
+    let available = false;
+    try {
+      available = await provider.isAvailable();
+    } catch {
+      available = false;
+    }
+    this.availabilityCache.set(provider.provider, { at: Date.now(), available });
+    return available;
+  }
+
   private async getProviderForUniversity(universityId: string): Promise<IAiProvider> {
     const uniConfig = this.universityConfigs.get(universityId);
     const providerType = uniConfig?.provider ?? this.config.get<AIProvider>('AI_DEFAULT_PROVIDER', AIProvider.CLAUDE);
@@ -184,10 +206,10 @@ export class AIService {
       throw new BadRequestException(`AI provider "${providerType}" is not available`);
     }
 
-    if (!(await provider.isAvailable())) {
+    if (!(await this.isProviderAvailable(provider))) {
       this.logger.warn(`${provider.name} is unavailable, attempting fallback`);
       for (const [type, fallback] of this.providers) {
-        if (type !== providerType && await fallback.isAvailable()) {
+        if (type !== providerType && await this.isProviderAvailable(fallback)) {
           return fallback;
         }
       }
@@ -224,7 +246,7 @@ export class AIService {
       for (const [type, fallback] of this.providers) {
         if (type === primary.provider) continue;
         try {
-          if (!(await fallback.isAvailable())) continue;
+          if (!(await this.isProviderAvailable(fallback))) continue;
           this.logger.log(`Runtime fallback to ${fallback.name} for ${operation}`);
           return { result: await call(fallback), provider: fallback };
         } catch (e2: any) {

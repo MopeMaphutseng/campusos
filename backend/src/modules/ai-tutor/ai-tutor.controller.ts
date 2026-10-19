@@ -1,7 +1,8 @@
 import {
   Controller, Get, Post, Patch, Delete,
-  Body, Param, Query, UseGuards,
+  Body, Param, Query, UseGuards, Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { AiTutorService } from './ai-tutor.service';
@@ -60,6 +61,60 @@ export class AiTutorController {
     @Body('content') content: string,
   ) {
     return this.aiTutorService.sendMessage(universityId, id, userId, content);
+  }
+
+  @Post('sessions/:id/messages/stream')
+  @ApiOperation({ summary: 'Stream a tutor reply as Server-Sent Events (token by token)' })
+  @ApiParam({ name: 'id', type: String })
+  async streamMessage(
+    @UniversityId() universityId: string,
+    @UserId() userId: string,
+    @Param('id') id: string,
+    @Body('content') content: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    // Disable proxy buffering (Render/nginx) so tokens flush immediately.
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders?.();
+
+    const send = (payload: Record<string, any>) => {
+      try {
+        res.write(`data: ${JSON.stringify(payload)}\n\n`);
+      } catch {
+        // client disconnected mid-stream
+      }
+    };
+
+    // Tell the client the stream is open so it can drop the "thinking" state.
+    send({ type: 'ready' });
+
+    try {
+      const stream = await this.aiTutorService.streamMessage(
+        universityId,
+        id,
+        userId,
+        content,
+      );
+      for await (const chunk of stream) {
+        if (chunk.text) send({ type: 'token', content: chunk.text });
+        if (chunk.done) {
+          send({ type: 'done', tokensUsed: chunk.tokensUsed ?? 0 });
+          break;
+        }
+      }
+    } catch (err: any) {
+      const status = err?.status ?? err?.statusCode;
+      send({
+        type: 'error',
+        message: err?.message ?? 'The AI tutor is unavailable right now.',
+        ...(status ? { status } : {}),
+      });
+    } finally {
+      res.end();
+    }
   }
 
   @Patch('sessions/:id/end')

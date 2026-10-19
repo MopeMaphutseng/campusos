@@ -21,6 +21,9 @@ import 'package:campusos/features/campus-life/screens/campus_life_screen.dart';
 import 'package:campusos/features/settings/screens/settings_screen.dart';
 import 'package:campusos/features/payments/screens/payments_screen.dart';
 import 'package:campusos/features/credentials/screens/credentials_screen.dart';
+import 'package:campusos/features/planner/screens/study_planner_screen.dart';
+import 'package:campusos/features/planner/screens/business_assistant_screen.dart';
+import 'package:campusos/features/profile/screens/profile_screen.dart';
 import 'package:campusos/core/utils/storage.dart';
 
 final authStateProvider = StateProvider<bool>((ref) => false);
@@ -87,6 +90,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
       GoRoute(path: '/payments', builder: (_, __) => const PaymentsScreen()),
       GoRoute(path: '/credentials', builder: (_, __) => const CredentialsScreen()),
+      GoRoute(path: '/study-planner', builder: (_, __) => const StudyPlannerScreen()),
+      GoRoute(path: '/business-assistant', builder: (_, __) => const BusinessAssistantScreen()),
+      GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
     ],
   );
 });

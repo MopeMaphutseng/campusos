@@ -33,6 +33,8 @@ import { SmsUssdModule } from './modules/sms-ussd/sms-ussd.module';
 import { SeminarsModule } from './modules/seminars/seminar.module';
 import { MonetizationModule } from './modules/monetization/monetization.module';
 import { EmailModule } from './modules/email/email.module';
+import { PlannerModule } from './modules/planner/planner.module';
+import { ProfileModule } from './modules/profile/profile.module';
 import { dataSourceOptions } from './config/data-source';
 
 @Module({
@@ -104,6 +106,8 @@ import { dataSourceOptions } from './config/data-source';
     SeminarsModule,
     MonetizationModule,
     EmailModule,
+    PlannerModule,
+    ProfileModule,
   ],
 })
 export class AppModule {}

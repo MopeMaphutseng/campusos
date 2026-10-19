@@ -14,6 +14,9 @@ import 'package:campusos/features/ai-tutor/screens/ai_tutor_screen.dart';
 import 'package:campusos/features/news/screens/news_screen.dart';
 import 'package:campusos/features/sports/screens/sports_screen.dart';
 import 'package:campusos/features/campus-life/screens/campus_life_screen.dart';
+import 'package:campusos/features/planner/screens/study_planner_screen.dart';
+import 'package:campusos/features/planner/screens/business_assistant_screen.dart';
+import 'package:campusos/features/profile/screens/profile_screen.dart';
 
 class QuickModulesGrid extends StatelessWidget {
   const QuickModulesGrid({super.key});
@@ -33,6 +36,9 @@ class QuickModulesGrid extends StatelessWidget {
       _ModuleItem(LucideIcons.newspaper, 'News', const Color(0xFF14B8A6), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NewsScreen()))),
       _ModuleItem(LucideIcons.trophy, 'Sports', const Color(0xFFEAB308), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SportsScreen()))),
       _ModuleItem(LucideIcons.sparkles, 'Campus Life', AppColors.info, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CampusLifeScreen()))),
+      _ModuleItem(LucideIcons.calendarCheck, 'Planner', const Color(0xFF7C3AED), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudyPlannerScreen()))),
+      _ModuleItem(LucideIcons.briefcase, 'Business', const Color(0xFF0EA5E9), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BusinessAssistantScreen()))),
+      _ModuleItem(LucideIcons.user, 'Profile', AppColors.primaryAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()))),
     ];
 
     return Padding(
