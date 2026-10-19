@@ -80,10 +80,13 @@ services:
     rootDir: frontend
     buildCommand: |
       set -e
-      if [ ! -d "$HOME/flutter" ]; then
-        git clone --depth 1 -b stable https://github.com/flutter/flutter.git "$HOME/flutter"
+      FLUTTER_VERSION=3.27.0
+      if [ ! -d "$HOME/flutter/.git" ]; then
+        rm -rf "$HOME/flutter"
+        git clone --depth 1 -b "$FLUTTER_VERSION" https://github.com/flutter/flutter.git "$HOME/flutter"
       fi
-      export PATH="$PATH:$HOME/flutter/bin"
+      export PATH="$HOME/flutter/bin:$PATH"
+      flutter --version
       flutter config --enable-web --no-analytics
       flutter pub get
       flutter build web --release --dart-define=API_BASE_URL="$API_BASE_URL"

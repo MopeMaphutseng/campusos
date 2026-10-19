@@ -4,7 +4,8 @@
 
 | Submission field | Value |
 |---|---|
-| **Live Demo URL** | _[https://campusos-web.onrender.com](https://campusos-web.onrender.com)_ ← update after first Render deploy |
+| **Live Demo URL** | [https://campusos-web-lis2.onrender.com](https://campusos-web-lis2.onrender.com) |
+| **API Base URL** | [https://campusos-api-36tv.onrender.com](https://campusos-api-36tv.onrender.com) |
 | **GitHub Repository** | [https://github.com/MopeMaphutseng/campusos](https://github.com/MopeMaphutseng/campusos) |
 | **Demo Video URL** | _TODO — add your 60–90s Loom/Canva link here_ |
 | **AI Tools Used** | Google Gemini (`gemini-2.5-flash`), Mistral, NVIDIA NIM — plus AI-assisted development |
