@@ -22,6 +22,7 @@ export class CafeteriaOrder extends TenantBaseEntity {
 
   @Column({ type: 'jsonb', default: () => "'[]'" })
   items: Array<{
+    menuItemId?: string;
     name: string;
     quantity: number;
     price: number;

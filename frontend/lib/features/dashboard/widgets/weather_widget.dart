@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:campusos/core/theme/app_colors.dart';
-import 'package:campusos/core/widgets/cards.dart';
 
 class WeatherWidget extends StatelessWidget {
   final int temp;
@@ -21,7 +20,7 @@ class WeatherWidget extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             LucideIcons.cloudSun,
             size: 20,
             color: AppColors.secondaryAccent,

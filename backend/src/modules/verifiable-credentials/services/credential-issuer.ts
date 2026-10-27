@@ -84,7 +84,7 @@ export class CredentialIssuer {
       created: now.toISOString(),
       verificationMethod: key.id,
       proofPurpose: 'assertionMethod',
-      proofValue: `z${signature.toString('base58btc')}`,
+      proofValue: `z${(signature as any).toString('base58btc')}`,
     };
   }
 
@@ -120,7 +120,7 @@ export class CredentialIssuer {
           created: now.toISOString(),
           verificationMethod: key.id,
           proofPurpose: 'authentication',
-          proofValue: `z${signature.toString('base58btc')}`,
+          proofValue: `z${(signature as any).toString('base58btc')}`,
         },
       };
     }

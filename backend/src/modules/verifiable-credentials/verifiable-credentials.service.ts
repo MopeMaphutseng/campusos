@@ -1,11 +1,10 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { VerifiableCredential as CredentialEntity, CredentialStatus } from './entities/credential.entity';
+import { VerifiableCredential as CredentialEntity, CredentialStatus, CredentialType } from './entities/credential.entity';
 import { CredentialIssuer } from './services/credential-issuer';
 import { CredentialVerifier, VerificationResult } from './services/credential-verifier';
 import { DidService } from './services/did-service';
-import { CredentialType } from './services/credential-types';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 
 @Injectable()
@@ -43,7 +42,7 @@ export class VerifiableCredentialsService {
     }
 
     const w3cCredential = this.issuer.issueCredential({
-      type: data.type,
+      type: data.type as any,
       issuerDid: `did:web:${universityId}.campusos.com`,
       issuerName: 'CampusOS University',
       subjectDid: `did:key:${data.holderId}`,
@@ -74,11 +73,17 @@ export class VerifiableCredentialsService {
       holderDid: w3cCredential.credentialSubject.id,
       credentialUrl: `/credentials/${w3cCredential.id}`,
       qrCodeData: `campusos://credential/${w3cCredential.id}`,
-    });
+    } as any) as unknown as CredentialEntity;
 
-    const saved = await this.credentialRepo.save(credential);
+    const saved = (await this.credentialRepo.save(credential)) as CredentialEntity;
     this.logger.log(`Issued ${data.type} credential to ${data.holderName} (${universityId})`);
     return saved;
+  }
+
+  async findCredentialById(id: string): Promise<CredentialEntity> {
+    const credential = await this.credentialRepo.findOne({ where: { id } });
+    if (!credential) throw new NotFoundException('Credential not found');
+    return credential;
   }
 
   async verifyCredential(id: string): Promise<{

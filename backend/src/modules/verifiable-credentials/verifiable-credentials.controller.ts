@@ -23,6 +23,7 @@ export class VerifiableCredentialsController {
     @UniversityId() universityId: string,
     @Body() body: {
       holderId: string;
+      holderName?: string;
       type: CredentialType;
       name: string;
       description?: string;
@@ -32,7 +33,11 @@ export class VerifiableCredentialsController {
       expirationDate?: string;
     },
   ) {
-    return this.vcService.issueCredential(universityId, body);
+    return this.vcService.issueCredential(universityId, {
+      holderName: body.holderName || body.name,
+      ...body,
+      expirationDate: body.expirationDate ? new Date(body.expirationDate) : undefined,
+    });
   }
 
   @Get('holder/:holderId')

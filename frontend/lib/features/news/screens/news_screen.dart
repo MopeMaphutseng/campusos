@@ -68,7 +68,7 @@ class _NewsScreenState extends ConsumerState<NewsScreen> {
                 ),
                 data: (articles) {
                   if (articles.isEmpty) {
-                    return SliverFillRemaining(
+                    return const SliverFillRemaining(
                       child: EmptyState(
                         icon: LucideIcons.newspaper,
                         title: 'No news yet',
@@ -85,7 +85,7 @@ class _NewsScreenState extends ConsumerState<NewsScreen> {
                 },
               ),
             ] else if (_selectedTab == 1) ...[
-              SliverToBoxAdapter(
+              const SliverToBoxAdapter(
                 child: SectionHeader(title: 'Startup Projects', actionText: 'Submit Your Idea'),
               ),
               SliverFillRemaining(
@@ -154,7 +154,7 @@ class _NewsScreenState extends ConsumerState<NewsScreen> {
                 ),
               ),
             ] else if (_selectedTab == 2) ...[
-              SliverToBoxAdapter(
+              const SliverToBoxAdapter(
                 child: SectionHeader(title: 'Seminars & Competitions'),
               ),
               SliverFillRemaining(
@@ -167,7 +167,7 @@ class _NewsScreenState extends ConsumerState<NewsScreen> {
                 ),
               ),
             ] else ...[
-              SliverToBoxAdapter(
+              const SliverToBoxAdapter(
                 child: SectionHeader(title: 'Alumni Network'),
               ),
               SliverFillRemaining(
@@ -289,9 +289,9 @@ class _NewsCard extends StatelessWidget {
               const SizedBox(width: 8),
               Text('• ${_timeAgo(news.publishedAt)}', style: Theme.of(context).textTheme.bodySmall),
               const Spacer(),
-              Icon(LucideIcons.share2, size: 16, color: AppColors.textSecondary),
+              const Icon(LucideIcons.share2, size: 16, color: AppColors.textSecondary),
               const SizedBox(width: 12),
-              Icon(LucideIcons.bookmark, size: 16, color: AppColors.textSecondary),
+              const Icon(LucideIcons.bookmark, size: 16, color: AppColors.textSecondary),
             ],
           ),
         ],

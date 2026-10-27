@@ -1,37 +1,26 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:campusos/core/theme/app_colors.dart';
-import 'package:campusos/features/dashboard/screens/dashboard_screen.dart';
-import 'package:campusos/features/academics/screens/academics_screen.dart';
-import 'package:campusos/features/library/screens/library_screen.dart';
-import 'package:campusos/features/marketplace/screens/marketplace_screen.dart';
-import 'package:campusos/features/messaging/screens/messaging_screen.dart';
 
-final currentTabProvider = StateProvider<int>((ref) => 0);
+class MainShell extends StatelessWidget {
+  const MainShell({super.key, required this.navigationShell});
 
-class MainShell extends ConsumerWidget {
-  const MainShell({super.key});
+  final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final currentTab = ref.watch(currentTabProvider);
+  Widget build(BuildContext context) {
+    final currentTab = navigationShell.currentIndex;
 
     return Scaffold(
-      body: IndexedStack(
-        index: currentTab,
-        children: const [
-          DashboardScreen(),
-          AcademicsScreen(),
-          LibraryScreen(),
-          MarketplaceScreen(),
-          MessagingScreen(),
-        ],
-      ),
+      body: navigationShell,
       bottomNavigationBar: _CampusBottomNav(
         currentIndex: currentTab,
-        onTap: (index) => ref.read(currentTabProvider.notifier).state = index,
+        onTap: (index) => navigationShell.goBranch(
+          index,
+          initialLocation: index == navigationShell.currentIndex,
+        ),
       ),
     );
   }

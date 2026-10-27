@@ -19,7 +19,7 @@ class LibraryScreen extends ConsumerStatefulWidget {
 class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   String _searchQuery = '';
   LibraryCategory _selectedCategory = LibraryCategory.textbooks;
-  String _breadcrumb = 'Computer Science';
+  final String _breadcrumb = 'Computer Science';
 
   final _aiFeatures = const [
     _AIFeature('Explainer', LucideIcons.brain, AppColors.primaryAccent),
@@ -160,7 +160,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                       .toList();
                 }
                 if (filtered.isEmpty) {
-                  return SliverFillRemaining(
+                  return const SliverFillRemaining(
                     child: EmptyState(
                       icon: LucideIcons.bookOpen,
                       title: 'No resources found',
@@ -204,9 +204,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           Text('Faculties', style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: AppColors.textSecondary,
               )),
-          Icon(LucideIcons.chevronRight, size: 14, color: AppColors.textSecondary),
+          const Icon(LucideIcons.chevronRight, size: 14, color: AppColors.textSecondary),
           Text(' Science & Tech', style: Theme.of(context).textTheme.bodySmall),
-          Icon(LucideIcons.chevronRight, size: 14, color: AppColors.textSecondary),
+          const Icon(LucideIcons.chevronRight, size: 14, color: AppColors.textSecondary),
           Text(' $_breadcrumb', style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppColors.primaryAccent,
@@ -222,7 +222,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       children: [
         Row(
           children: [
-            Icon(LucideIcons.sparkles, size: 16, color: AppColors.secondaryAccent),
+            const Icon(LucideIcons.sparkles, size: 16, color: AppColors.secondaryAccent),
             const SizedBox(width: 6),
             Text('AI Learning Tools', style: Theme.of(context).textTheme.titleSmall),
           ],
@@ -418,7 +418,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
               ),
               Row(
                 children: [
-                  Icon(LucideIcons.sparkles, size: 18, color: AppColors.secondaryAccent),
+                  const Icon(LucideIcons.sparkles, size: 18, color: AppColors.secondaryAccent),
                   const SizedBox(width: 8),
                   Expanded(child: Text(label, style: Theme.of(context).textTheme.titleLarge)),
                 ],
@@ -511,7 +511,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                             ],
                             if (resource.isVerified) ...[
                               const SizedBox(width: 8),
-                              Icon(LucideIcons.checkCircle, size: 14, color: AppColors.success),
+                              const Icon(LucideIcons.checkCircle, size: 14, color: AppColors.success),
                             ],
                           ],
                         ),
@@ -549,7 +549,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                     padding: const EdgeInsets.all(32),
                     child: Column(
                       children: [
-                        Icon(LucideIcons.fileQuestion, size: 48, color: AppColors.textSecondary),
+                        const Icon(LucideIcons.fileQuestion, size: 48, color: AppColors.textSecondary),
                         const SizedBox(height: 12),
                         Text('No content available', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary)),
                         const SizedBox(height: 4),
@@ -738,7 +738,7 @@ class _ResourceCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(LucideIcons.star, size: 14, color: AppColors.secondaryAccent),
+                    const Icon(LucideIcons.star, size: 14, color: AppColors.secondaryAccent),
                     const SizedBox(width: 4),
                     Text(
                       rating.toStringAsFixed(1),
@@ -754,7 +754,7 @@ class _ResourceCard extends StatelessWidget {
                     ),
                     const Spacer(),
                     if (resource.isVerified)
-                      Icon(LucideIcons.check, size: 14, color: AppColors.success),
+                      const Icon(LucideIcons.check, size: 14, color: AppColors.success),
                   ],
                 ),
               ],

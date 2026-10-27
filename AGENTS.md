@@ -31,6 +31,14 @@ Frontend API base defaults to `http://localhost:3005`; override at build with
 | POST /api/v1/auth/register | 201/200 |
 | GET /api/v1/dashboard/today | 200 |
 | GET /api/v1/academics/courses | 200 |
+| GET /api/v1/academics/timetable | 200 (filtered to enrolled courses) |
+| GET /api/v1/academics/timetable/my | 200 |
+| GET /api/v1/academics/performance/summary | 200 (credit-weighted GPA) |
+| GET /api/v1/academics/enrollments/:id/grades | 200 |
+| GET /api/v1/academics/materials | 200 (enrolled courses; `?courseId=&category=&search=`) |
+| GET /api/v1/academics/courses/:courseId/materials | 200 |
+| POST /api/v1/academics/materials | 201 |
+| POST /api/v1/academics/materials/:id/download | 201 (increments counter) |
 | GET /api/v1/library/items | 200 |
 | GET /api/v1/marketplace/listings | 200 |
 | GET /api/v1/messaging/conversations | 200 |
@@ -40,6 +48,14 @@ Frontend API base defaults to `http://localhost:3005`; override at build with
 | GET /api/v1/innovation-hub/projects | 200 |
 | GET /api/v1/research-hub/calls | 200 |
 | GET /api/v1/campus-life/map/locations | 200 |
+| GET /api/v1/campus-life/cafeteria/menu | 200 (daily, `?date=&mealType=&shopId=`) |
+| GET /api/v1/campus-life/cafeteria/menu/week | 200 (next 7 days) |
+| GET /api/v1/campus-life/transport | 200 (paginated routes) |
+| GET /api/v1/campus-life/transport/:id/live | 200 (simulated live position + per-stop ETAs) |
+| GET /api/v1/notifications/unread-count | 200 (`{count}`) |
+| PATCH /api/v1/notifications/:id/read | 200 |
+| PATCH /api/v1/notifications/read-all | 200 |
+| POST /api/v1/notifications/fcm-token | 200 (persists to `device_tokens`) |
 | GET /api/v1/health/appointments | 200 |
 | GET /api/v1/sports/matches | 200 |
 | GET /api/v1/news/articles | 200 |
@@ -54,6 +70,34 @@ Frontend API base defaults to `http://localhost:3005`; override at build with
 - TypeORM soft-deletes use `deleted_at` column — must exist on every table
 - `synchronize: false`, `migrationsRun: true` — new entities need a migration or they 500 at runtime
 - JWT expires in 15 minutes
+
+## Offline-first (Frontend)
+- Hive boxes: `academic_cache`, `campus_cache`, `offline_queue` (initialized in `main.dart` via `HiveStorage.init()`).
+- `ApiService.getMyEnrollments()`, `getMyTimetable()`, and `getPerformanceSummary()` are cache-first: they write to Hive on success and fall back to the cached copy on network failure. Cache access is best-effort and never throws into the UI.
+- Web-only file uploads live in `lib/core/utils/file_picker_{helper,web,stub}.dart` using conditional imports so the VM test runner does not pull in `dart:html`.
+
+## Navigation
+- Tab navigation uses `StatefulShellRoute.indexedStack` (GoRouter). Browser URLs, back/forward and deep links now reflect `/`, `/academics`, `/library`, `/marketplace`, `/messages`.
+
+## Schema & Migrations
+- `render.yaml` runs migrations (`DB_SYNCHRONIZE=false`, `DB_MIGRATIONS_RUN=true`).
+- ALL migrations are idempotent: `CREATE TABLE/INDEX IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`, and enums wrapped in `DO $$ BEGIN ... EXCEPTION WHEN duplicate_object`.
+- Always add an idempotent migration for any new entity (e.g. `1700000000009-AddCafeteriaMenus`, `1700000000010-AddDeviceTokens`, `1700000000011-AddCourseMaterials`, `1700000000012-EnsureAcademicColumns`); the backend auto-runs them on boot (`migrationsRun` defaults true unless `DB_MIGRATIONS_RUN=false`).
+- `012-EnsureAcademicColumns` is additive: it back-fills `courses.level/max_capacity/academic_year/instructor_id/status/prerequisites/metadata` and `enrollments.section/letter_grade/completed_at/metadata/deleted_at`, which earlier environments only had via a `synchronize` run.
+- Migrations are **non-destructive** and safe to replay on an existing DB: migration `003` no longer creates the `notifications`/`messages`/`conversations`/`credentials` stubs; `004` creates the real tables with `CREATE TABLE IF NOT EXISTS` and no longer issues `DROP TABLE`.
+- Validated by replaying all 12 migrations twice against a throwaway schema (fresh pass + idempotent re-run) and by a data-preservation test (insert university/user/conversation/message/notification → re-run all migrations → all rows survive).
+
+## Academic Materials (first semester import)
+- `CourseMaterial` entity (`course_materials`): `courseId`, `courseCode`, `title`, `category`, `fileName`, `fileUrl`, `mimeType`, `sizeBytes`, `checksum`, `uploadedBy`, `downloadCount`. Categories: `lectures, notes, readings, labs, tutorials, assignments, past_papers, projects, code, images, course_info, other`.
+- Files are served statically from `backend/uploads/academics/<CODE>/<category>/<file>` at `/uploads/...` (`main.ts` `useStaticAssets`). `backend/uploads/` is gitignored runtime data. `/uploads/` sets `Access-Control-Allow-Origin: *` and `Cross-Origin-Resource-Policy: cross-origin` so the web app can embed files.
+- `scripts/import-first-semester.mjs` is idempotent: creates/updates courses, enrols the demo student, copies curated files, and inserts rows (SHA-256 dedupe + unique `(university_id, checksum)` index). Use `node scripts/import-first-semester.mjs --dry-run` first.
+- Imported 7 real courses (including `CS3400` nested inside `EE3400`): `CS3520 Computer Systems`, `CS3541 Computer Networks`, `CS3400 Data Structures and Algorithms`, `EE3400 Electronic Measurements and Instrumentation`, `EE3404 Electric Circuit Theory`, `EE3408 Analogue Communications`, `M3503 Engineering Mathematics III` — 468 materials / ~505 MB. Windows junk (`Zone.Identifier`, `~$`, `.exe`, `.bkp`), saved Classroom HTML/`_files` caches and 48 duplicate copies are skipped.
+- Frontend: `Academics → Materials` tab (`academics_screen.dart`) groups by course, sorts by category, and searches title/course/file. Tapping a material pushes `MaterialViewerScreen`, which previews PDFs/images/text/code in an embedded `HtmlElementView` iframe on web (`lib/core/widgets/file_preview_web.dart`, with a conditional-import stub for VM tests). Office/CAD/zip files show an in-app fallback with an "Open file" action.
+
+## P1 Campus Features
+- **Cafeteria menu + ordering**: `CafeteriaMenu` entity (`cafeteria_menus`), daily + weekly endpoints, seeded 7 days. Frontend `features/campus-life/cafeteria/cafeteria_screen.dart` reads `cafeteriaMenuProvider`, supports a cart (FAB → bottom sheet) and places real orders via `POST /campus-life/cafeteria/orders` (`CafeteriaOrder`, total auto-computed). `GET /campus-life/cafeteria/orders` lists your orders. **Orders are priced server-side**: clients send `{items:[{menuItemId, quantity}]}`; the backend resolves name/price from `cafeteria_menus` (scoped to university, `isAvailable=true`), ignores any client price, rejects unknown/unavailable items and invalid quantities, and derives `cafeteriaName`/`currency`/`totalAmount`. Covered by `__tests__/cafeteria-order.service.spec.ts`.
+- **Shuttle tracker**: `TransportRoute` seeded (C1/R1/T1). `/transport/:id/live` simulates the bus gliding along the route polyline (5-min loop, server clock) and returns distance + ETA per stop. Frontend `transport_screen.dart` polls `shuttleLiveProvider` every 10s.
+- **Notifications**: `DeviceToken` entity (`device_tokens`) persists FCM tokens (uniq per token, soft-deactivate on remove/invalid). In-app center shows unread badge (`unreadNotificationsCountProvider`) on the dashboard bell; field is `read` (backend) — the provider tolerates `read`/`isRead`.
 
 ## AI (CampusGPT)
 - Real pipeline: `ai-tutor` module → `AIService` → Claude/Gemini provider. `library/*/ai/*` endpoints delegate to `AIService`.

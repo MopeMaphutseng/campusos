@@ -183,7 +183,7 @@ class _CampusMapScreenState extends ConsumerState<CampusMapScreen> {
               itemBuilder: (context, index) {
                 final b = _filteredBuildings[index];
                 return ListTile(
-                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Coming soon'), duration: Duration(seconds: 1))),
+                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coming soon'), duration: Duration(seconds: 1))),
                   leading: Container(
                     width: 40,
                     height: 40,
@@ -321,7 +321,7 @@ class _CampusMapScreenState extends ConsumerState<CampusMapScreen> {
 
   Widget _mapMarker(_BuildingData building, bool isDark) {
     return GestureDetector(
-      onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Coming soon'), duration: Duration(seconds: 1))),
+      onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coming soon'), duration: Duration(seconds: 1))),
       child: Container(
         width: 32,
         height: 32,

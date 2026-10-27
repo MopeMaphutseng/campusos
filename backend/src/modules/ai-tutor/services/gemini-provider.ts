@@ -209,7 +209,7 @@ export class GeminiProvider extends IAiProvider {
     return response.body!;
   }
 
-  private buildContents(messages: Array<{ role: 'user' | 'assistant'; content: string }>): GeminiContent[] {
+  private buildContents(messages: Array<{ role: 'user' | 'assistant' | 'system' | string; content: string }>): GeminiContent[] {
     return messages
       .filter((m) => typeof m.content === 'string' && m.content.trim().length > 0)
       .map((m) => ({

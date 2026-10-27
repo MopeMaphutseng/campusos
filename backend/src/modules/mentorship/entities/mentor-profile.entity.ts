@@ -11,7 +11,7 @@ export enum MentorStatus {
 @Entity('mentor_profiles')
 @Index(['universityId', 'userId'], { unique: true })
 @Index(['universityId', 'status'])
-@Index(['universityId', 'expertise'], { using: 'GIN' })
+@Index(['universityId', 'expertise'], { using: 'GIN' } as any)
 export class MentorProfile extends TenantBaseEntity {
   @Column({ type: 'uuid', name: 'user_id' })
   userId: string;

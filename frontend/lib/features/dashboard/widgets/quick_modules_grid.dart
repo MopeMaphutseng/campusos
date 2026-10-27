@@ -92,15 +92,15 @@ class _AcademiaPanelState extends State<_AcademiaPanel>
   late final AnimationController _controller;
 
   final List<_Symbol> _symbols = [
-    _Symbol(LucideIcons.graduationCap, 1.0, 0.26, 26),
-    _Symbol(LucideIcons.bookOpen, 0.9, 1.30, 18),
-    _Symbol(LucideIcons.atom, 1.2, -0.52, 22),
-    _Symbol(LucideIcons.flaskConical, 1.4, 0.0, 16),
-    _Symbol(LucideIcons.pencil, 0.8, 1.57, 17),
-    _Symbol(LucideIcons.scrollText, 1.1, 2.36, 18),
-    _Symbol(LucideIcons.award, 1.0, -1.05, 19),
-    _Symbol(LucideIcons.brain, 0.95, 0.79, 17),
-    _Symbol(LucideIcons.globe, 1.2, -0.26, 18),
+    const _Symbol(LucideIcons.graduationCap, 1.0, 0.26, 26),
+    const _Symbol(LucideIcons.bookOpen, 0.9, 1.30, 18),
+    const _Symbol(LucideIcons.atom, 1.2, -0.52, 22),
+    const _Symbol(LucideIcons.flaskConical, 1.4, 0.0, 16),
+    const _Symbol(LucideIcons.pencil, 0.8, 1.57, 17),
+    const _Symbol(LucideIcons.scrollText, 1.1, 2.36, 18),
+    const _Symbol(LucideIcons.award, 1.0, -1.05, 19),
+    const _Symbol(LucideIcons.brain, 0.95, 0.79, 17),
+    const _Symbol(LucideIcons.globe, 1.2, -0.26, 18),
   ];
 
   @override
@@ -244,7 +244,7 @@ class _CenterEmblem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gold = AppColors.gold;
+    const gold = AppColors.gold;
     return Opacity(
       opacity: 0.85,
       child: Stack(
@@ -276,7 +276,7 @@ class _CenterEmblem extends StatelessWidget {
                 ),
               ],
             ),
-            child: Icon(LucideIcons.graduationCap, color: gold, size: 28),
+            child: const Icon(LucideIcons.graduationCap, color: gold, size: 28),
           ),
         ],
       ),
@@ -342,7 +342,7 @@ class _Twinkles extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rng = math.Random(7);
-    final gold = AppColors.gold;
+    const gold = AppColors.gold;
     return Positioned.fill(
       child: CustomPaint(
         painter: _TwinklePainter(t: t, rng: rng, gold: gold),

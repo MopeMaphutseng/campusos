@@ -33,13 +33,18 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               title: Text('Notifications', style: Theme.of(context).textTheme.headlineSmall),
               actions: [
                 TextButton(
-                  onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Demo: All marked as read'),
-                      duration: Duration(seconds: 1),
-                    ),
-                  ),
-                  child: Text(
+                  onPressed: () async {
+                    await markAllNotificationsRead(ref);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('All notifications marked as read'),
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text(
                     'Mark all read',
                     style: TextStyle(fontSize: 12, color: AppColors.primaryAccent),
                   ),
@@ -85,9 +90,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   onAction: () => ref.invalidate(notificationsProvider),
                 ),
               ),
-              data: (notifications) {
+              data: (allNotifications) {
+                final notifications = allNotifications.where(_matchesFilter).toList();
                 if (notifications.isEmpty) {
-                  return SliverFillRemaining(
+                  return const SliverFillRemaining(
                     child: EmptyState(
                       icon: LucideIcons.bell,
                       title: 'No notifications',
@@ -121,7 +127,19 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                                 return _NotificationItem(
                                   notification: notif,
                                   isDark: isDark,
-                                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Coming soon'), duration: Duration(seconds: 1))),
+                                  onTap: () async {
+                                    if (!notif.isRead) {
+                                      await markNotificationRead(ref, notif.id);
+                                    }
+                                    if (context.mounted && notif.body.isNotEmpty) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(notif.title),
+                                          duration: const Duration(seconds: 2),
+                                        ),
+                                      );
+                                    }
+                                  },
                                 );
                               },
                               childCount: items.length,
@@ -139,6 +157,33 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         ),
       ),
     );
+  }
+
+  bool _matchesFilter(AppNotification n) {
+    if (_filter == NotificationFilter.all) return true;
+    final key = '${n.module} ${n.type}'.toLowerCase();
+    switch (_filter) {
+      case NotificationFilter.academic:
+        return key.contains('class') ||
+            key.contains('exam') ||
+            key.contains('result') ||
+            key.contains('deadline') ||
+            key.contains('academic');
+      case NotificationFilter.social:
+        return key.contains('message') ||
+            key.contains('marketplace') ||
+            key.contains('social') ||
+            key.contains('mentor');
+      case NotificationFilter.security:
+        return key.contains('safety') || key.contains('security');
+      case NotificationFilter.system:
+        return key.contains('payment') ||
+            key.contains('system') ||
+            key.contains('scholarship') ||
+            key.contains('job');
+      case NotificationFilter.all:
+        return true;
+    }
   }
 
   Map<String, List<AppNotification>> _groupByTime(List<AppNotification> notifications) {
@@ -167,49 +212,34 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 }
 
 IconData _iconForType(String type) {
-  switch (type) {
-    case 'academic':
-      return LucideIcons.graduationCap;
-    case 'social':
-      return LucideIcons.messageCircle;
-    case 'system':
-      return LucideIcons.download;
-    case 'security':
-      return LucideIcons.shield;
-    case 'marketplace':
-      return LucideIcons.store;
-    case 'mentorship':
-      return LucideIcons.userCheck;
-    case 'scholarship':
-      return LucideIcons.award;
-    case 'job':
-      return LucideIcons.briefcase;
-    default:
-      return LucideIcons.bell;
+  final t = type.toLowerCase();
+  if (t.contains('class') || t.contains('exam') || t.contains('result') || t.contains('academic')) {
+    return LucideIcons.graduationCap;
   }
+  if (t.contains('message') || t.contains('social')) return LucideIcons.messageCircle;
+  if (t.contains('safety') || t.contains('security')) return LucideIcons.shield;
+  if (t.contains('marketplace')) return LucideIcons.store;
+  if (t.contains('mentor')) return LucideIcons.userCheck;
+  if (t.contains('scholarship')) return LucideIcons.award;
+  if (t.contains('job')) return LucideIcons.briefcase;
+  if (t.contains('payment')) return LucideIcons.creditCard;
+  if (t.contains('deadline')) return LucideIcons.alarmClock;
+  return LucideIcons.bell;
 }
 
 Color _colorForType(String type) {
-  switch (type) {
-    case 'academic':
-      return AppColors.success;
-    case 'social':
-      return AppColors.info;
-    case 'system':
-      return AppColors.textSecondary;
-    case 'security':
-      return AppColors.warning;
-    case 'marketplace':
-      return AppColors.secondaryAccent;
-    case 'mentorship':
-      return AppColors.tertiaryAccent;
-    case 'scholarship':
-      return AppColors.primaryAccent;
-    case 'job':
-      return AppColors.info;
-    default:
-      return AppColors.primaryAccent;
+  final t = type.toLowerCase();
+  if (t.contains('class') || t.contains('exam') || t.contains('result') || t.contains('academic')) {
+    return AppColors.success;
   }
+  if (t.contains('message') || t.contains('social')) return AppColors.info;
+  if (t.contains('safety') || t.contains('security')) return AppColors.warning;
+  if (t.contains('marketplace')) return AppColors.secondaryAccent;
+  if (t.contains('mentor')) return AppColors.tertiaryAccent;
+  if (t.contains('scholarship')) return AppColors.primaryAccent;
+  if (t.contains('job')) return AppColors.info;
+  if (t.contains('payment')) return AppColors.tertiaryAccent;
+  return AppColors.primaryAccent;
 }
 
 String _timeAgo(DateTime date) {
@@ -234,8 +264,9 @@ class _NotificationItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final iconColor = _colorForType(notification.type);
-    final icon = _iconForType(notification.type);
+    final key = notification.module.isNotEmpty ? notification.module : notification.type;
+    final iconColor = _colorForType(key);
+    final icon = _iconForType(key);
 
     return CampusCard(
       padding: const EdgeInsets.all(14),

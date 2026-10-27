@@ -1,8 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
+import { isUUID } from 'class-validator';
 import { CampusMapLocation, MapLocationType } from './entities/campus-map.entity';
 import { CafeteriaOrder, CafeteriaOrderStatus } from './entities/cafeteria-order.entity';
+import { CafeteriaMenu, MealType } from './entities/cafeteria-menu.entity';
 import { Hostel, HostelStatus } from './entities/hostel.entity';
 import { Club } from './entities/club.entity';
 import { TransportRoute } from './entities/transport-route.entity';
@@ -14,6 +16,7 @@ export class CampusLifeService {
   constructor(
     @InjectRepository(CampusMapLocation) private mapRepo: Repository<CampusMapLocation>,
     @InjectRepository(CafeteriaOrder) private orderRepo: Repository<CafeteriaOrder>,
+    @InjectRepository(CafeteriaMenu) private menuRepo: Repository<CafeteriaMenu>,
     @InjectRepository(Hostel) private hostelRepo: Repository<Hostel>,
     @InjectRepository(Club) private clubRepo: Repository<Club>,
     @InjectRepository(TransportRoute) private transportRepo: Repository<TransportRoute>,
@@ -46,12 +49,83 @@ export class CampusLifeService {
   }
 
   async createCafeteriaOrder(universityId: string, userId: string, data: Partial<CafeteriaOrder>): Promise<CafeteriaOrder> {
+    const rawItems = Array.isArray(data.items) ? data.items : [];
+    if (rawItems.length === 0) {
+      throw new BadRequestException('Order must contain at least one item');
+    }
+    if (rawItems.length > 50) {
+      throw new BadRequestException('Order contains too many items');
+    }
+
+    const lines = rawItems.map((item: any) => {
+      const menuItemId = typeof item?.menuItemId === 'string' ? item.menuItemId : '';
+      const quantity = Number(item?.quantity);
+      if (!isUUID(menuItemId)) {
+        throw new BadRequestException('Each order item must reference a valid menuItemId');
+      }
+      if (!Number.isInteger(quantity) || quantity <= 0 || quantity > 100) {
+        throw new BadRequestException('Item quantity must be a positive integer (max 100)');
+      }
+      const notes = typeof item?.notes === 'string' ? item.notes : undefined;
+      return { menuItemId, quantity, notes };
+    });
+
+    // Prices are authoritative: look them up from the menu, never from the client.
+    const ids = [...new Set(lines.map((l) => l.menuItemId))];
+    const menus = await this.menuRepo.find({
+      where: { id: In(ids), universityId, isAvailable: true },
+    });
+    const byId = new Map(menus.map((m) => [m.id, m]));
+
+    const items = lines.map((line) => {
+      const menu = byId.get(line.menuItemId);
+      if (!menu) {
+        throw new BadRequestException('One or more items are unavailable');
+      }
+      const price = Number(menu.price);
+      if (!Number.isFinite(price) || price < 0) {
+        throw new BadRequestException('Menu item has an invalid price');
+      }
+      return {
+        menuItemId: menu.id,
+        name: menu.itemName,
+        quantity: line.quantity,
+        price,
+        ...(line.notes ? { notes: line.notes } : {}),
+      };
+    });
+
+    const totalAmount = Math.round(
+      items.reduce((sum, item) => sum + item.price * item.quantity, 0) * 100,
+    ) / 100;
+    if (totalAmount <= 0) {
+      throw new BadRequestException('Order total must be greater than zero');
+    }
+
+    const shops = [
+      ...new Set(
+        items
+          .map((item) => byId.get(item.menuItemId)?.shopName)
+          .filter((name): name is string => !!name),
+      ),
+    ];
+    const cafeteriaName = shops.length === 1 ? shops[0] : 'Campus Cafeteria';
+    const currency = byId.get(items[0].menuItemId)?.currency || 'LSL';
+
     const order = this.orderRepo.create({
-      ...data,
       universityId,
       userId,
+      cafeteriaName,
+      items,
+      totalAmount,
+      currency,
       status: CafeteriaOrderStatus.PENDING,
-      totalAmount: data.items?.reduce((sum, item) => sum + item.price * item.quantity, 0) || 0,
+      pickupLocation:
+        typeof data.pickupLocation === 'string' && data.pickupLocation.trim()
+          ? data.pickupLocation.trim()
+          : cafeteriaName,
+      specialInstructions: data.specialInstructions,
+      paymentMethod: data.paymentMethod,
     });
     return this.orderRepo.save(order);
   }
@@ -71,6 +145,65 @@ export class CampusLifeService {
       order.completedAt = new Date();
     }
     return this.orderRepo.save(order);
+  }
+
+  // --- Cafeteria daily menu ---
+
+  private todayIso(): string {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  async findDailyMenu(
+    universityId: string,
+    date?: string,
+    mealType?: MealType,
+    shopId?: string,
+  ): Promise<CafeteriaMenu[]> {
+    const where: any = {
+      universityId,
+      date: date || this.todayIso(),
+      isAvailable: true,
+    };
+    if (mealType) where.mealType = mealType;
+    if (shopId) where.shopId = shopId;
+    return this.menuRepo.find({
+      where,
+      order: { shopName: 'ASC', mealType: 'ASC', itemName: 'ASC' },
+    });
+  }
+
+  async findWeeklyMenu(universityId: string, startDate?: string): Promise<CafeteriaMenu[]> {
+    const start = startDate ? new Date(startDate) : new Date();
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    const startIso = start.toISOString().slice(0, 10);
+    const endIso = end.toISOString().slice(0, 10);
+    return this.menuRepo
+      .createQueryBuilder('m')
+      .where('m.universityId = :universityId', { universityId })
+      .andWhere('m.date BETWEEN :startIso AND :endIso', { startIso, endIso })
+      .andWhere('m.isAvailable = true')
+      .orderBy('m.date', 'ASC')
+      .addOrderBy('m.mealType', 'ASC')
+      .getMany();
+  }
+
+  async createMenuItem(universityId: string, data: Partial<CafeteriaMenu>): Promise<CafeteriaMenu> {
+    const item = this.menuRepo.create({ ...data, universityId });
+    return this.menuRepo.save(item);
+  }
+
+  async updateMenuItem(universityId: string, id: string, data: Partial<CafeteriaMenu>): Promise<CafeteriaMenu> {
+    const item = await this.menuRepo.findOne({ where: { id, universityId } });
+    if (!item) throw new NotFoundException('Menu item not found');
+    Object.assign(item, data);
+    return this.menuRepo.save(item);
+  }
+
+  async deleteMenuItem(universityId: string, id: string): Promise<void> {
+    const item = await this.menuRepo.findOne({ where: { id, universityId } });
+    if (!item) throw new NotFoundException('Menu item not found');
+    await this.menuRepo.softRemove(item);
   }
 
   async findHostels(universityId: string): Promise<Hostel[]> {
@@ -171,6 +304,63 @@ export class CampusLifeService {
     const route = await this.transportRepo.findOne({ where: { id, universityId } });
     if (!route) throw new NotFoundException('Transport route not found');
     return route;
+  }
+
+  async getTransportLive(
+    universityId: string,
+    routeId: string,
+  ): Promise<{
+    route: TransportRoute;
+    vehicle: { lat: number | null; lng: number | null; lastUpdated: Date | null };
+    stops: Array<{ name: string; lat: number; lng: number; order: number; distanceKm: number | null; etaMinutes: number | null }>;
+  }> {
+    const route = await this.findTransportRouteById(universityId, routeId);
+    let lat = route.currentLat != null ? Number(route.currentLat) : null;
+    let lng = route.currentLng != null ? Number(route.currentLng) : null;
+    let lastUpdated: Date | null = route.lastUpdated ?? null;
+
+    // Simulate the shuttle gliding along the route polyline so the tracker
+    // feels live. A full loop takes 5 minutes; position is derived from the
+    // server clock and does not need to be persisted.
+    const orderedStops = [...(route.stops || [])].sort((a, b) => a.order - b.order);
+    if (orderedStops.length >= 2) {
+      const cycleMs = 5 * 60 * 1000;
+      const progress = (Date.now() % cycleMs) / cycleMs;
+      const legs = orderedStops.length - 1;
+      const scaled = progress * legs;
+      const segIndex = Math.min(Math.floor(scaled), legs - 1);
+      const segT = scaled - segIndex;
+      const from = orderedStops[segIndex];
+      const to = orderedStops[segIndex + 1];
+      lat = from.lat + (to.lat - from.lat) * segT;
+      lng = from.lng + (to.lng - from.lng) * segT;
+      lastUpdated = new Date();
+    }
+
+    const haversine = (a: number, b: number, c: number, d: number): number => {
+      const R = 6371;
+      const dLat = ((c - a) * Math.PI) / 180;
+      const dLng = ((d - b) * Math.PI) / 180;
+      const s =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos((a * Math.PI) / 180) * Math.cos((c * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(s));
+    };
+
+    const avgSpeedKmh = 20;
+    const stops = orderedStops.map((stop) => {
+      const distanceKm =
+        lat != null && lng != null ? haversine(lat, lng, stop.lat, stop.lng) : null;
+      const etaMinutes =
+        distanceKm != null ? Math.max(1, Math.round((distanceKm / avgSpeedKmh) * 60)) : null;
+      return { ...stop, distanceKm, etaMinutes };
+    });
+
+    return {
+      route,
+      vehicle: { lat, lng, lastUpdated },
+      stops,
+    };
   }
 
   async updateTransportRoute(universityId: string, id: string, data: Partial<TransportRoute>): Promise<TransportRoute> {

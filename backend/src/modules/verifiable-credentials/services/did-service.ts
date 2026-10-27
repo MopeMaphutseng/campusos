@@ -134,7 +134,7 @@ export class DidService {
     return {
       publicKey: pubDER.toString('base64'),
       privateKey: privDER.toString('base64'),
-      publicKeyMultibase: `z${Buffer.from(pubDER).toString('base58btc')}`,
+      publicKeyMultibase: `z${Buffer.from(pubDER).toString('base58btc' as any)}`,
     };
   }
 }

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Notification, NotificationType, NotificationPriority } from './entities/notification.entity';
+import { DeviceToken } from './entities/device-token.entity';
 import { FcmProvider } from './services/fcm-provider';
 import { ApnsProvider } from './services/apns-provider';
 import {
@@ -34,7 +35,7 @@ interface NotificationTemplateContent {
   data?: PushDataPayload;
 }
 
-interface UserNotificationPreferences {
+export interface UserNotificationPreferences {
   push: boolean;
   email: boolean;
   sms: boolean;
@@ -42,24 +43,15 @@ interface UserNotificationPreferences {
   quietHoursEnd?: number;
 }
 
-interface FcmTokenRecord {
-  token: string;
-  userId: string;
-  universityId: string;
-  platform: PushPlatform;
-  lastUsedAt: Date;
-  createdAt: Date;
-}
-
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
-  private readonly fcmTokens = new Map<string, FcmTokenRecord>();
   private readonly sentDeduplication = new Map<string, Date>();
   private readonly DEDUP_WINDOW_MS = 300_000;
 
   constructor(
     @InjectRepository(Notification) private notificationRepo: Repository<Notification>,
+    @InjectRepository(DeviceToken) private deviceTokenRepo: Repository<DeviceToken>,
     private config: ConfigService,
     private fcmProvider: FcmProvider,
     private apnsProvider: ApnsProvider,
@@ -67,7 +59,7 @@ export class NotificationsService {
 
   private renderTemplate(
     template: NotificationTemplate,
-    data?: Record<string, unknown>,
+    data?: Record<string, any>,
   ): NotificationTemplateContent {
     const d = data || {};
     const templates: Record<NotificationTemplate, () => NotificationTemplateContent> = {
@@ -293,7 +285,7 @@ export class NotificationsService {
     if (channels?.push !== false) {
       const dedupKey = `${universityId}:${userId}:${template}:${JSON.stringify(content.data)}`;
       if (!this.isDuplicate(dedupKey)) {
-        const tokens = this.getUserTokens(userId, universityId);
+        const tokens = await this.getUserTokens(userId, universityId);
         if (tokens.length > 0) {
           const pushResponse = await this.fcmProvider.sendBulk({
             tokens: tokens.map((t) => t.token),
@@ -318,7 +310,7 @@ export class NotificationsService {
 
           if (pushResponse.invalidTokens.length > 0) {
             for (const token of pushResponse.invalidTokens) {
-              await this.removeFcmToken(userId, universityId, token);
+              await this.removeFcmToken(universityId, userId, token);
             }
           }
 
@@ -367,7 +359,7 @@ export class NotificationsService {
 
     await this.notificationRepo.save(inAppNotifications);
 
-    const allTokens = this.getUniversityTokens(universityId);
+    const allTokens = await this.getUniversityTokens(universityId);
     let pushResult: BulkPushResponse | undefined;
 
     if (allTokens.length > 0) {
@@ -392,10 +384,7 @@ export class NotificationsService {
 
       if (pushResult.invalidTokens.length > 0) {
         for (const token of pushResult.invalidTokens) {
-          const record = this.fcmTokens.get(token);
-          if (record) {
-            this.fcmTokens.delete(token);
-          }
+          await this.deviceTokenRepo.update({ token }, { isActive: false });
         }
       }
     }
@@ -434,15 +423,26 @@ export class NotificationsService {
     platform?: PushPlatform,
   ): Promise<void> {
     const detected = platform || this.detectPlatform(token);
-    const record: FcmTokenRecord = {
-      token,
-      userId,
-      universityId,
-      platform: detected,
-      lastUsedAt: new Date(),
-      createdAt: new Date(),
-    };
-    this.fcmTokens.set(token, record);
+    const existing = await this.deviceTokenRepo.findOne({ where: { token } });
+    if (existing) {
+      existing.userId = userId;
+      existing.universityId = universityId;
+      existing.platform = detected;
+      existing.lastUsedAt = new Date();
+      existing.isActive = true;
+      await this.deviceTokenRepo.save(existing);
+    } else {
+      await this.deviceTokenRepo.save(
+        this.deviceTokenRepo.create({
+          token,
+          userId,
+          universityId,
+          platform: detected,
+          lastUsedAt: new Date(),
+          isActive: true,
+        }),
+      );
+    }
     this.logger.log(`FCM token registered for ${userId} (${detected}) in ${universityId}`);
   }
 
@@ -451,42 +451,39 @@ export class NotificationsService {
     userId: string,
     token: string,
   ): Promise<void> {
-    const record = this.fcmTokens.get(token);
-    if (record && record.userId === userId && record.universityId === universityId) {
-      this.fcmTokens.delete(token);
+    const record = await this.deviceTokenRepo.findOne({
+      where: { token, userId, universityId },
+    });
+    if (record) {
+      record.isActive = false;
+      await this.deviceTokenRepo.save(record);
       this.logger.log(`FCM token removed for ${userId} in ${universityId}`);
     }
   }
 
-  private getUserTokens(userId: string, universityId: string): FcmTokenRecord[] {
-    const tokens: FcmTokenRecord[] = [];
-    for (const record of this.fcmTokens.values()) {
-      if (record.userId === userId && record.universityId === universityId) {
-        tokens.push(record);
-      }
-    }
-    return tokens;
+  private async getUserTokens(userId: string, universityId: string): Promise<DeviceToken[]> {
+    return this.deviceTokenRepo.find({
+      where: { userId, universityId, isActive: true },
+    });
   }
 
-  private getUniversityTokens(universityId: string): string[] {
-    const tokens: string[] = [];
-    for (const record of this.fcmTokens.values()) {
-      if (record.universityId === universityId) {
-        tokens.push(record.token);
-      }
-    }
-    return tokens;
+  private async getUniversityTokens(universityId: string): Promise<string[]> {
+    const records = await this.deviceTokenRepo.find({
+      where: { universityId, isActive: true },
+    });
+    return records.map((r) => r.token);
   }
 
   async cleanupStaleTokens(maxAgeDays: number = 90): Promise<number> {
     const cutoff = new Date(Date.now() - maxAgeDays * 24 * 60 * 60 * 1000);
-    let cleaned = 0;
-    for (const [token, record] of this.fcmTokens) {
-      if (record.lastUsedAt < cutoff) {
-        this.fcmTokens.delete(token);
-        cleaned++;
-      }
-    }
+    const result = await this.deviceTokenRepo
+      .createQueryBuilder()
+      .update(DeviceToken)
+      .set({ isActive: false })
+      .where('last_used_at < :cutoff', { cutoff })
+      .andWhere('is_active = true')
+      .execute();
+    const cleaned = result.affected || 0;
     if (cleaned > 0) {
       this.logger.log(`Cleaned up ${cleaned} stale FCM tokens`);
     }

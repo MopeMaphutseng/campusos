@@ -113,11 +113,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: 8),
               TextField(
                 controller: _universityController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Search your university...',
-                  prefixIcon: const Icon(LucideIcons.building, size: 18),
-                  prefixIconConstraints: const BoxConstraints(minWidth: 44),
-                  suffixIcon: const Icon(LucideIcons.chevronDown, size: 18),
+                  prefixIcon: Icon(LucideIcons.building, size: 18),
+                  prefixIconConstraints: BoxConstraints(minWidth: 44),
+                  suffixIcon: Icon(LucideIcons.chevronDown, size: 18),
                 ),
                 onTap: () => _showUniversityPicker(context),
                 readOnly: true,
@@ -356,7 +356,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final api = ref.read(apiServiceProvider);
-      final universityId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+      const universityId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
       api.setUniversityId(universityId);
       final response = await api.post('/api/v1/auth/login',
           options: Options(headers: {'X-University-ID': universityId}),

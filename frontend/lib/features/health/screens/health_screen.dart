@@ -13,9 +13,9 @@ class HealthScreen extends ConsumerStatefulWidget {
 
 class _HealthScreenState extends ConsumerState<HealthScreen> {
   final _medications = [
-    _MedicationData('Ibuprofen 400mg', '1 tablet after lunch', true, 'Taken at 12:30'),
-    _MedicationData('Allergy Tablet', '1 tablet before bed', false, 'Due at 21:00'),
-    _MedicationData('Vitamin D', '1 capsule morning', true, 'Taken at 07:00'),
+    const _MedicationData('Ibuprofen 400mg', '1 tablet after lunch', true, 'Taken at 12:30'),
+    const _MedicationData('Allergy Tablet', '1 tablet before bed', false, 'Due at 21:00'),
+    const _MedicationData('Vitamin D', '1 capsule morning', true, 'Taken at 07:00'),
   ];
 
   final _safetyAlerts = const [
@@ -97,15 +97,15 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 12),
-                                TextField(
-                                  decoration: const InputDecoration(
+                                const TextField(
+                                  decoration: InputDecoration(
                                     hintText: 'Date',
                                     prefixIcon: Icon(LucideIcons.calendar, size: 18),
                                   ),
                                 ),
                                 const SizedBox(height: 12),
-                                TextField(
-                                  decoration: const InputDecoration(
+                                const TextField(
+                                  decoration: InputDecoration(
                                     hintText: 'Time',
                                     prefixIcon: Icon(LucideIcons.clock, size: 18),
                                   ),
@@ -161,7 +161,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                 ),
               ),
             ),
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: SectionHeader(title: 'Safety Alerts'),
             ),
             SliverList(
@@ -337,11 +337,11 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Row(
+        title: const Row(
           children: [
-            const Icon(LucideIcons.shieldAlert, color: AppColors.error),
-            const SizedBox(width: 8),
-            const Text('Emergency SOS'),
+            Icon(LucideIcons.shieldAlert, color: AppColors.error),
+            SizedBox(width: 8),
+            Text('Emergency SOS'),
           ],
         ),
         content: const Text(

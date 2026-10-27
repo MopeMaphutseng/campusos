@@ -283,7 +283,7 @@ class _HostelScreenState extends ConsumerState<HostelScreen>
       children: [
         Expanded(
           child: _maintenanceRequests.isEmpty
-              ? EmptyState(
+              ? const EmptyState(
                   icon: LucideIcons.wrench,
                   title: 'No Requests',
                   message: 'Submit a maintenance request to get started',

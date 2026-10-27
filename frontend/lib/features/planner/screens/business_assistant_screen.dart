@@ -251,9 +251,9 @@ class _BusinessAssistantScreenState extends ConsumerState<BusinessAssistantScree
             color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
+            children: [
               LoadingShimmer(width: 140, height: 18),
               SizedBox(height: 12),
               LoadingShimmer(),

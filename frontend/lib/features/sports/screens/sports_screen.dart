@@ -51,7 +51,7 @@ class _SportsScreenState extends ConsumerState<SportsScreen> {
               ),
             ),
             if (_selectedTab == 0) ...[
-              SliverToBoxAdapter(
+              const SliverToBoxAdapter(
                 child: SectionHeader(title: 'Today\'s Fixtures', actionText: 'This Week'),
               ),
               SliverList(
@@ -61,14 +61,14 @@ class _SportsScreenState extends ConsumerState<SportsScreen> {
                 ),
               ),
             ] else if (_selectedTab == 1) ...[
-              SliverToBoxAdapter(
+              const SliverToBoxAdapter(
                 child: SectionHeader(title: 'Premier League Standings'),
               ),
               SliverToBoxAdapter(
                 child: _buildStandingsTable(context, isDark),
               ),
             ] else ...[
-              SliverToBoxAdapter(
+              const SliverToBoxAdapter(
                 child: SectionHeader(title: 'Campus League'),
               ),
               SliverList(
@@ -123,17 +123,17 @@ class _SportsScreenState extends ConsumerState<SportsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Matlama FC', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
+                      const Text('Matlama FC', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
                       Text('LM RFC', style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12)),
                     ],
                   ),
                 ),
-                Text('2 – 1', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w700)),
+                const Text('2 – 1', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w700)),
                 const Spacer(),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('67\'', style: TextStyle(color: AppColors.secondaryAccent, fontSize: 14, fontWeight: FontWeight.w700)),
+                    const Text('67\'', style: TextStyle(color: AppColors.secondaryAccent, fontSize: 14, fontWeight: FontWeight.w700)),
                     Text('2nd Half', style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 10)),
                   ],
                 ),
@@ -184,7 +184,7 @@ class _SportsScreenState extends ConsumerState<SportsScreen> {
             child: Row(
               children: [
                 const SizedBox(width: 24, child: Text('#', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700))),
-                Expanded(flex: 3, child: Text('Team', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700))),
+                const Expanded(flex: 3, child: Text('Team', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700))),
                 _tableHeader('P'),
                 _tableHeader('W'),
                 _tableHeader('D'),
@@ -209,7 +209,7 @@ class _SportsScreenState extends ConsumerState<SportsScreen> {
                 children: [
                   SizedBox(
                     width: 24,
-                    child: Text('${i + 1}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                    child: Text('${i + 1}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
                   ),
                   Expanded(
                     flex: 3,
@@ -288,7 +288,7 @@ class _FixtureCard extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              Icon(LucideIcons.mapPin, size: 13, color: AppColors.textSecondary),
+              const Icon(LucideIcons.mapPin, size: 13, color: AppColors.textSecondary),
               const SizedBox(width: 4),
               Text(fixture.venue, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11)),
             ],

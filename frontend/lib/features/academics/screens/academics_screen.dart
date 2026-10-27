@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:campusos/core/services/api_service.dart';
 import 'package:campusos/core/theme/app_colors.dart';
 import 'package:campusos/core/widgets/widgets.dart';
+import 'package:campusos/features/academics/screens/material_viewer_screen.dart';
 
 class AcademicsScreen extends ConsumerStatefulWidget {
   const AcademicsScreen({super.key});
@@ -19,14 +20,18 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
   late final Future<List<dynamic>> _enrollmentsFuture;
   late final Future<List<dynamic>> _timetableFuture;
   late final Future<List<List<dynamic>>> _academicFuture;
+  late final Future<Map<String, dynamic>> _performanceFuture;
+  late final Future<List<dynamic>> _materialsFuture;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     final api = ref.read(apiServiceProvider);
     _enrollmentsFuture = api.getMyEnrollments();
     _timetableFuture = api.getMyTimetable();
+    _performanceFuture = api.getPerformanceSummary();
+    _materialsFuture = api.getMyMaterials();
     _academicFuture = Future.wait([_enrollmentsFuture, _timetableFuture]);
   }
 
@@ -49,7 +54,7 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
               child: TextField(
                 onChanged: (v) => setState(() => _searchQuery = v),
                 decoration: InputDecoration(
-                  hintText: 'Search courses, professors...',
+                  hintText: 'Search courses, materials...',
                   prefixIcon: const Icon(LucideIcons.search, size: 18),
                   prefixIconConstraints: const BoxConstraints(minWidth: 40),
                   suffixIcon: _searchQuery.isNotEmpty
@@ -75,10 +80,15 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
               ),
               child: TabBar(
                 controller: _tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                labelPadding: const EdgeInsets.symmetric(horizontal: 14),
                 labelColor: AppColors.primaryAccent,
                 unselectedLabelColor: AppColors.textSecondary,
-                labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                labelStyle:
+                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                unselectedLabelStyle:
+                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                 indicatorColor: AppColors.primaryAccent,
                 indicatorSize: TabBarIndicatorSize.tab,
                 indicatorWeight: 3,
@@ -89,6 +99,7 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
                   Tab(text: 'Timetable'),
                   Tab(text: 'Enrollment'),
                   Tab(text: 'Grades'),
+                  Tab(text: 'Materials'),
                 ],
               ),
             ),
@@ -100,6 +111,7 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
                   _buildTimetableTab(isDark),
                   _buildEnrollmentTab(isDark),
                   _buildGradesTab(isDark),
+                  _buildMaterialsTab(isDark),
                 ],
               ),
             ),
@@ -124,39 +136,68 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
 
   String _dayAbbr(String day) {
     const abbr = {
-      'monday': 'Mon', 'tuesday': 'Tue', 'wednesday': 'Wed',
-      'thursday': 'Thu', 'friday': 'Fri', 'saturday': 'Sat', 'sunday': 'Sun',
+      'monday': 'Mon',
+      'tuesday': 'Tue',
+      'wednesday': 'Wed',
+      'thursday': 'Thu',
+      'friday': 'Fri',
+      'saturday': 'Sat',
+      'sunday': 'Sun',
     };
     return abbr[day.toLowerCase()] ?? day;
   }
 
   String _scheduleFrom(List<dynamic> entries) {
-    const order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const order = [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday'
+    ];
     final sorted = [...entries]..sort((a, b) {
-        final d = order.indexOf((a['dayOfWeek'] ?? '').toString().toLowerCase()) -
-            order.indexOf((b['dayOfWeek'] ?? '').toString().toLowerCase());
+        final d =
+            order.indexOf((a['dayOfWeek'] ?? '').toString().toLowerCase()) -
+                order.indexOf((b['dayOfWeek'] ?? '').toString().toLowerCase());
         return d != 0
             ? d
-            : _hhmm(a['startTime'].toString()).compareTo(_hhmm(b['startTime'].toString()));
+            : _hhmm(a['startTime'].toString())
+                .compareTo(_hhmm(b['startTime'].toString()));
       });
     final byTime = <String, List<String>>{};
     for (final e in sorted) {
-      final key = '${_hhmm(e['startTime'].toString())} – ${_hhmm(e['endTime'].toString())}';
-      byTime.putIfAbsent(key, () => []).add(_dayAbbr((e['dayOfWeek'] ?? '').toString()));
+      final key =
+          '${_hhmm(e['startTime'].toString())} – ${_hhmm(e['endTime'].toString())}';
+      byTime
+          .putIfAbsent(key, () => [])
+          .add(_dayAbbr((e['dayOfWeek'] ?? '').toString()));
     }
-    return byTime.entries.map((kv) => '${kv.value.join(', ')} ${kv.key}').join(' · ');
+    return byTime.entries
+        .map((kv) => '${kv.value.join(', ')} ${kv.key}')
+        .join(' · ');
   }
 
   String _nextClassFrom(List<dynamic> entries) {
     if (entries.isEmpty) return 'To be announced';
-    const order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const order = [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday'
+    ];
     final now = DateTime.now();
     final todayIdx = now.weekday % 7;
     final nowMin = now.hour * 60 + now.minute;
     var best = 'To be announced';
     var bestDelta = 1 << 30;
     for (final e in entries) {
-      final dayIdx = order.indexOf((e['dayOfWeek'] ?? '').toString().toLowerCase());
+      final dayIdx =
+          order.indexOf((e['dayOfWeek'] ?? '').toString().toLowerCase());
       if (dayIdx < 0) continue;
       final st = _hhmm(e['startTime'].toString()).split(':');
       final startMin = int.parse(st[0]) * 60 + int.parse(st[1]);
@@ -173,13 +214,15 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
     return best;
   }
 
-  List<_CourseData> _buildLiveCourses(List<dynamic> enrollments, List<dynamic> timetable) {
+  List<_CourseData> _buildLiveCourses(
+      List<dynamic> enrollments, List<dynamic> timetable) {
     final courses = <_CourseData>[];
     var i = 0;
     for (final e in enrollments) {
       if ((e['status'] ?? '').toString() == 'dropped') continue;
       final course = e['course'] as Map<String, dynamic>? ?? const {};
-      final entries = timetable.where((t) => t['courseId'] == e['courseId']).toList();
+      final entries =
+          timetable.where((t) => t['courseId'] == e['courseId']).toList();
       var professor = 'To be announced';
       for (final t in entries) {
         final n = (t['instructorName'] ?? '').toString();
@@ -199,7 +242,9 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
         code: (course['code'] ?? '—').toString(),
         name: (course['name'] ?? '').toString(),
         professor: professor,
-        schedule: entries.isEmpty ? 'No timetable entries yet' : _scheduleFrom(entries),
+        schedule: entries.isEmpty
+            ? 'No timetable entries yet'
+            : _scheduleFrom(entries),
         room: room,
         nextClass: _nextClassFrom(entries),
         color: _courseColors[i % _courseColors.length],
@@ -241,7 +286,9 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
                 .where((c) =>
                     c.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
                     c.code.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                    c.professor.toLowerCase().contains(_searchQuery.toLowerCase()))
+                    c.professor
+                        .toLowerCase()
+                        .contains(_searchQuery.toLowerCase()))
                 .toList();
 
         if (courses.isEmpty) {
@@ -288,32 +335,50 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                child: Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
+                child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                        color: AppColors.skeletonBase(
+                            isDark: Theme.of(context).brightness ==
+                                Brightness.dark),
+                        borderRadius: BorderRadius.circular(2))),
               ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
                       color: course.color.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Text(course.code, style: TextStyle(color: course.color, fontWeight: FontWeight.w700, fontSize: 18)),
+                    child: Text(course.code,
+                        style: TextStyle(
+                            color: course.color,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 18)),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(course.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+                        Text(course.name,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(fontWeight: FontWeight.w700)),
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            Icon(LucideIcons.user, size: 14, color: AppColors.textSecondary),
+                            const Icon(LucideIcons.user,
+                                size: 14, color: AppColors.textSecondary),
                             const SizedBox(width: 4),
-                            Text(course.professor, style: Theme.of(context).textTheme.bodySmall),
+                            Text(course.professor,
+                                style: Theme.of(context).textTheme.bodySmall),
                           ],
                         ),
                       ],
@@ -322,38 +387,54 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
                 ],
               ),
               const Divider(height: 28),
-              _detailRow(LucideIcons.clock, 'Schedule', course.schedule, isDark),
+              _detailRow(
+                  LucideIcons.clock, 'Schedule', course.schedule, isDark),
               const SizedBox(height: 12),
               _detailRow(LucideIcons.mapPin, 'Room', course.room, isDark),
               const SizedBox(height: 12),
-              _detailRow(LucideIcons.calendar, 'Next Class', course.nextClass, isDark),
+              _detailRow(
+                  LucideIcons.calendar, 'Next Class', course.nextClass, isDark),
               const SizedBox(height: 24),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryAccent.withValues(alpha: isDark ? 0.08 : 0.04),
+                  color: AppColors.primaryAccent
+                      .withValues(alpha: isDark ? 0.08 : 0.04),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.primaryAccent.withValues(alpha: 0.15)),
+                  border: Border.all(
+                      color: AppColors.primaryAccent.withValues(alpha: 0.15)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(LucideIcons.info, size: 16, color: AppColors.primaryAccent),
+                        const Icon(LucideIcons.info,
+                            size: 16, color: AppColors.primaryAccent),
                         const SizedBox(width: 8),
-                        Text('Course Information', style: Theme.of(context).textTheme.titleSmall?.copyWith(color: AppColors.primaryAccent)),
+                        Text('Course Information',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(color: AppColors.primaryAccent)),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Text('Credits: ${course.credits}', style: Theme.of(context).textTheme.bodyMedium),
+                    Text('Credits: ${course.credits}',
+                        style: Theme.of(context).textTheme.bodyMedium),
                     const SizedBox(height: 4),
-                    Text('Department: ${course.department}', style: Theme.of(context).textTheme.bodyMedium),
+                    Text('Department: ${course.department}',
+                        style: Theme.of(context).textTheme.bodyMedium),
                     const SizedBox(height: 4),
-                    Text('Enrollment: ${course.status}', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.success)),
+                    Text('Enrollment: ${course.status}',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: AppColors.success)),
                     const SizedBox(height: 4),
-                    Text('Grade: ${course.gradeText}', style: Theme.of(context).textTheme.bodyMedium),
+                    Text('Grade: ${course.gradeText}',
+                        style: Theme.of(context).textTheme.bodyMedium),
                   ],
                 ),
               ),
@@ -369,9 +450,12 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
     return Row(
       children: [
         Container(
-          width: 36, height: 36,
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceDark : Colors.grey.withValues(alpha: 0.06),
+            color: isDark
+                ? AppColors.surfaceDark
+                : Colors.grey.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, size: 16, color: AppColors.textSecondary),
@@ -380,8 +464,16 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary)),
-            Text(value, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
+            Text(label,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: AppColors.textSecondary)),
+            Text(value,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.w500)),
           ],
         ),
       ],
@@ -412,7 +504,13 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
         final enrollments = snapshot.data![0];
         final timetable = snapshot.data![1];
         final enrolledIds = enrollments.map((e) => e['courseId']).toSet();
-        const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+        const dayOrder = [
+          'monday',
+          'tuesday',
+          'wednesday',
+          'thursday',
+          'friday'
+        ];
         final idIndex = <dynamic, int>{};
         for (final e in enrollments) {
           idIndex[e['courseId']] = idIndex.length;
@@ -420,7 +518,8 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
         final blocks = <_TimeBlock>[];
         for (final t in timetable) {
           if (!enrolledIds.contains(t['courseId'])) continue;
-          final dayIdx = dayOrder.indexOf((t['dayOfWeek'] ?? '').toString().toLowerCase());
+          final dayIdx =
+              dayOrder.indexOf((t['dayOfWeek'] ?? '').toString().toLowerCase());
           if (dayIdx < 0) continue;
           final sp = _hhmm(t['startTime'].toString()).split(':');
           final ep = _hhmm(t['endTime'].toString()).split(':');
@@ -431,118 +530,138 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
             startHour: startHour,
             duration: (endHour - startHour).clamp(0.25, 24.0),
             label: (t['courseCode'] ?? '').toString(),
-            color: _courseColors[(idIndex[t['courseId']] ?? 0) % _courseColors.length],
+            color: _courseColors[
+                (idIndex[t['courseId']] ?? 0) % _courseColors.length],
           ));
         }
 
         return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      scrollDirection: Axis.vertical,
-      child: Column(
-        children: [
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 500,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 56),
-                      child: Row(
-                        children: days.map((d) {
-                          return Expanded(
-                            child: Center(
-                              child: Text(
-                                d,
-                                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                      color: AppColors.textSecondary,
-                                    ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Expanded(
-                      child: Stack(
-                        children: [
-                          Column(
-                            children: hours.map((hour) {
+          physics: const BouncingScrollPhysics(),
+          scrollDirection: Axis.vertical,
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 500,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 56),
+                          child: Row(
+                            children: days.map((d) {
                               return Expanded(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: Colors.grey.withValues(alpha: 0.08),
-                                      ),
-                                    ),
-                                  ),
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      '${hour.toString().padLeft(2, '0')}:00',
-                                      style: Theme.of(context).textTheme.bodySmall,
-                                    ),
+                                child: Center(
+                                  child: Text(
+                                    d,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelLarge
+                                        ?.copyWith(
+                                          color: AppColors.textSecondary,
+                                        ),
                                   ),
                                 ),
                               );
                             }).toList(),
                           ),
-                          ...blocks.map((block) {
-                            final top = (block.startHour - 7) * (480 / 12);
-                            final height = block.duration * (480 / 12);
-                            return Positioned(
-                              top: top,
-                              left: 56 + (block.day * ((MediaQuery.of(context).size.width - 56) / 5)),
-                              width: (MediaQuery.of(context).size.width - 56) / 5 - 4,
-                              height: height,
-                              child: Container(
-                                margin: const EdgeInsets.all(2),
-                                decoration: BoxDecoration(
-                                  color: block.color.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: block.color.withValues(alpha: 0.3),
-                                  ),
-                                ),
-                                padding: const EdgeInsets.all(4),
-                                child: Text(
-                                  block.label,
-                                  style: TextStyle(
-                                    color: block.color,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
+                        ),
+                        const SizedBox(height: 8),
+                        Expanded(
+                          child: Stack(
+                            children: [
+                              Column(
+                                children: hours.map((hour) {
+                                  return Expanded(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: BorderSide(
+                                            color: Colors.grey
+                                                .withValues(alpha: 0.08),
+                                          ),
+                                        ),
+                                      ),
+                                      child: Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          '${hour.toString().padLeft(2, '0')}:00',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
                               ),
-                            );
-                          }),
-                        ],
-                      ),
+                              ...blocks.map((block) {
+                                final top = (block.startHour - 7) * (480 / 12);
+                                final height = block.duration * (480 / 12);
+                                return Positioned(
+                                  top: top,
+                                  left: 56 +
+                                      (block.day *
+                                          ((MediaQuery.of(context).size.width -
+                                                  56) /
+                                              5)),
+                                  width:
+                                      (MediaQuery.of(context).size.width - 56) /
+                                              5 -
+                                          4,
+                                  height: height,
+                                  child: Container(
+                                    margin: const EdgeInsets.all(2),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          block.color.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color:
+                                            block.color.withValues(alpha: 0.3),
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.all(4),
+                                    child: Text(
+                                      block.label,
+                                      style: TextStyle(
+                                        color: block.color,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
-    );
+        );
       },
     );
   }
 
   Widget _buildEnrollmentTab(bool isDark) {
     final actions = [
-      _EnrollmentAction('Add Course', LucideIcons.plusCircle, AppColors.success, 'Browse and add new courses'),
-      _EnrollmentAction('Drop Course', LucideIcons.minusCircle, AppColors.error, 'Remove a course from your schedule'),
-      _EnrollmentAction('Swap Course', LucideIcons.arrowLeftRight, AppColors.info, 'Exchange one course for another'),
-      _EnrollmentAction('Waitlist', LucideIcons.clock, AppColors.warning, 'Join the waitlist for full courses'),
+      const _EnrollmentAction('Add Course', LucideIcons.plusCircle,
+          AppColors.success, 'Browse and add new courses'),
+      const _EnrollmentAction('Drop Course', LucideIcons.minusCircle,
+          AppColors.error, 'Remove a course from your schedule'),
+      const _EnrollmentAction('Swap Course', LucideIcons.arrowLeftRight,
+          AppColors.info, 'Exchange one course for another'),
+      const _EnrollmentAction('Waitlist', LucideIcons.clock, AppColors.warning,
+          'Join the waitlist for full courses'),
     ];
 
     return ListView(
@@ -559,50 +678,61 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Center(
-                    child: Container(width: 40, height: 4, margin: const EdgeInsets.only(top: 12, bottom: 8),
-                      decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
+                    child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(top: 12, bottom: 8),
+                        decoration: BoxDecoration(
+                            color: AppColors.skeletonBase(
+                                isDark: Theme.of(context).brightness ==
+                                    Brightness.dark),
+                            borderRadius: BorderRadius.circular(2))),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Text('Enrollment Deadline', style: Theme.of(ctx).textTheme.titleMedium),
+                    child: Text('Enrollment Deadline',
+                        style: Theme.of(ctx).textTheme.titleMedium),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
                       children: [
-                        Row(
+                        const Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Deadline'),
-                            Text('August 30, 2026', style: TextStyle(fontWeight: FontWeight.w600)),
+                            Text('Deadline'),
+                            Text('August 30, 2026',
+                                style: TextStyle(fontWeight: FontWeight.w600)),
                           ],
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Days Remaining'),
+                            const Text('Days Remaining'),
                             Text('31 days',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.accentText(
                                     AppColors.warning,
-                                    isDark: Theme.of(context).brightness == Brightness.dark,
+                                    isDark: Theme.of(context).brightness ==
+                                        Brightness.dark,
                                   ),
                                 )),
                           ],
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Late Fee'),
+                            const Text('Late Fee'),
                             Text('M 500',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.accentText(
                                     AppColors.error,
-                                    isDark: Theme.of(context).brightness == Brightness.dark,
+                                    isDark: Theme.of(context).brightness ==
+                                        Brightness.dark,
                                   ),
                                 )),
                           ],
@@ -626,26 +756,36 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
                   builder: (ctx) => Padding(
                     padding: EdgeInsets.only(
                       bottom: MediaQuery.of(ctx).viewInsets.bottom,
-                      left: 20, right: 20, top: 12,
+                      left: 20,
+                      right: 20,
+                      top: 12,
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Center(
-                          child: Container(width: 40, height: 4,
-                            decoration: BoxDecoration(color: AppColors.skeletonBase(isDark: Theme.of(context).brightness == Brightness.dark), borderRadius: BorderRadius.circular(2))),
+                          child: Container(
+                              width: 40,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                  color: AppColors.skeletonBase(
+                                      isDark: Theme.of(context).brightness ==
+                                          Brightness.dark),
+                                  borderRadius: BorderRadius.circular(2))),
                         ),
                         const SizedBox(height: 16),
                         Row(
                           children: [
                             ModuleIcon(icon: a.icon, color: a.color),
                             const SizedBox(width: 12),
-                            Text(a.title, style: Theme.of(ctx).textTheme.titleMedium),
+                            Text(a.title,
+                                style: Theme.of(ctx).textTheme.titleMedium),
                           ],
                         ),
                         const SizedBox(height: 8),
-                        Text(a.description, style: Theme.of(ctx).textTheme.bodySmall),
+                        Text(a.description,
+                            style: Theme.of(ctx).textTheme.bodySmall),
                         const SizedBox(height: 16),
                         if (a.title == 'Add Course' || a.title == 'Swap Course')
                           TextField(
@@ -660,7 +800,8 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
                             controller: detailCtrl,
                             decoration: const InputDecoration(
                               hintText: 'Course to drop',
-                              prefixIcon: Icon(LucideIcons.minusCircle, size: 18),
+                              prefixIcon:
+                                  Icon(LucideIcons.minusCircle, size: 18),
                             ),
                           ),
                         if (a.title == 'Waitlist')
@@ -675,11 +816,13 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
                         SizedBox(
                           width: double.infinity,
                           child: CampusButton(
-                            label: '${a.title}',
+                            label: a.title,
                             onPressed: () {
                               Navigator.pop(ctx);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('${a.title} request submitted')),
+                                SnackBar(
+                                    content:
+                                        Text('${a.title} request submitted')),
                               );
                             },
                           ),
@@ -698,9 +841,11 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(a.title, style: Theme.of(context).textTheme.titleSmall),
+                        Text(a.title,
+                            style: Theme.of(context).textTheme.titleSmall),
                         const SizedBox(height: 2),
-                        Text(a.description, style: Theme.of(context).textTheme.bodySmall),
+                        Text(a.description,
+                            style: Theme.of(context).textTheme.bodySmall),
                       ],
                     ),
                   ),
@@ -709,7 +854,7 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
               ),
             )),
         const SizedBox(height: 16),
-        SectionHeader(title: 'Current Schedule'),
+        const SectionHeader(title: 'Current Schedule'),
         _buildCurrentScheduleCard(),
       ],
     );
@@ -720,8 +865,8 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
       future: _enrollmentsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CampusCard(
-            child: const Center(
+          return const CampusCard(
+            child: Center(
               child: Padding(
                 padding: EdgeInsets.all(12),
                 child: CircularProgressIndicator(),
@@ -734,7 +879,8 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
             .toList();
         var totalCredits = 0;
         for (final e in enrollments) {
-          totalCredits += int.tryParse((e['course']?['credits'] ?? 0).toString()) ?? 0;
+          totalCredits +=
+              int.tryParse((e['course']?['credits'] ?? 0).toString()) ?? 0;
         }
         return CampusCard(
           child: Column(
@@ -743,13 +889,15 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Active Enrollments', style: Theme.of(context).textTheme.titleSmall),
+                  Text('Active Enrollments',
+                      style: Theme.of(context).textTheme.titleSmall),
                   StatusBadge.success('${enrollments.length} enrolled'),
                 ],
               ),
               const SizedBox(height: 8),
               if (enrollments.isEmpty)
-                Text('No active enrollments yet.', style: Theme.of(context).textTheme.bodyMedium),
+                Text('No active enrollments yet.',
+                    style: Theme.of(context).textTheme.bodyMedium),
               ...enrollments.map((e) {
                 final course = e['course'] as Map<String, dynamic>? ?? const {};
                 return _enrollmentRow(
@@ -762,10 +910,12 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Total Credits', style: Theme.of(context).textTheme.titleSmall),
-                  Text('$totalCredits', style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: AppColors.primaryAccent,
-                      )),
+                  Text('Total Credits',
+                      style: Theme.of(context).textTheme.titleSmall),
+                  Text('$totalCredits',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: AppColors.primaryAccent,
+                          )),
                 ],
               ),
             ],
@@ -810,7 +960,8 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
 
         final enrollments = snapshot.data ?? const [];
         final grades = enrollments
-            .where((e) => e['grade'] != null && e['grade'].toString().isNotEmpty)
+            .where(
+                (e) => e['grade'] != null && e['grade'].toString().isNotEmpty)
             .map((e) {
           final course = e['course'] as Map<String, dynamic>? ?? const {};
           final score = double.tryParse(e['grade'].toString()) ?? 0;
@@ -823,22 +974,29 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
           );
         }).toList()
           ..sort((a, b) => a.code.compareTo(b.code));
-        final avg =
-            grades.isEmpty ? 0.0 : grades.map((g) => g.score).reduce((a, b) => a + b) / grades.length;
+        final avg = grades.isEmpty
+            ? 0.0
+            : grades.map((g) => g.score).reduce((a, b) => a + b) /
+                grades.length;
 
         return ListView(
           padding: const EdgeInsets.all(16),
           physics: const BouncingScrollPhysics(),
           children: [
-            SectionHeader(title: 'Academic Performance'),
+            const SectionHeader(title: 'Academic Performance'),
+            _buildGpaSummaryCard(),
+            const SizedBox(height: 12),
             CampusCard(
               child: Row(
                 children: [
-                  _gpaStat(context, 'Average', '${avg.toStringAsFixed(1)}%', AppColors.primaryAccent),
+                  _gpaStat(context, 'Average', '${avg.toStringAsFixed(1)}%',
+                      AppColors.primaryAccent),
                   const SizedBox(width: 24),
-                  _gpaStat(context, 'Graded', '${grades.length}', AppColors.tertiaryAccent),
+                  _gpaStat(context, 'Graded', '${grades.length}',
+                      AppColors.tertiaryAccent),
                   const SizedBox(width: 24),
-                  _gpaStat(context, 'Enrolled', '${enrollments.length}', AppColors.secondaryAccent),
+                  _gpaStat(context, 'Enrolled', '${enrollments.length}',
+                      AppColors.secondaryAccent),
                 ],
               ),
             ),
@@ -851,7 +1009,7 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
                 ),
               )
             else ...[
-              SectionHeader(title: 'Your Courses'),
+              const SectionHeader(title: 'Your Courses'),
               ...grades.map((g) => CampusCard(
                     padding: const EdgeInsets.all(16),
                     child: Row(
@@ -878,24 +1036,33 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(g.code, style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                    color: AppColors.textSecondary,
-                                  )),
-                              Text(g.name, style: Theme.of(context).textTheme.titleSmall),
+                              Text(g.code,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelMedium
+                                      ?.copyWith(
+                                        color: AppColors.textSecondary,
+                                      )),
+                              Text(g.name,
+                                  style:
+                                      Theme.of(context).textTheme.titleSmall),
                             ],
                           ),
                         ),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('${g.score}%', style: Theme.of(context).textTheme.titleSmall),
+                            Text('${g.score}%',
+                                style: Theme.of(context).textTheme.titleSmall),
                             const SizedBox(width: 4),
                             SizedBox(
                               width: 80,
                               child: LinearProgressIndicator(
                                 value: g.score / 100,
-                                backgroundColor: Colors.grey.withValues(alpha: 0.1),
-                                valueColor: AlwaysStoppedAnimation(_gradeColor(g.grade)),
+                                backgroundColor:
+                                    Colors.grey.withValues(alpha: 0.1),
+                                valueColor: AlwaysStoppedAnimation(
+                                    _gradeColor(g.grade)),
                                 minHeight: 4,
                                 borderRadius: BorderRadius.circular(2),
                               ),
@@ -912,13 +1079,109 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
     );
   }
 
-  Widget _gpaStat(BuildContext context, String label, String value, Color color) {
+  Widget _buildGpaSummaryCard() {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _performanceFuture,
+      builder: (context, snapshot) {
+        final summary = snapshot.data;
+        final gpa = (summary?['cumulativeGpa'] as num?)?.toDouble();
+        final scale = (summary?['gpaScale'] as num?)?.toDouble() ?? 4.0;
+        final attempted =
+            (summary?['totalCreditsAttempted'] as num?)?.toInt() ?? 0;
+        final earned = (summary?['totalCreditsEarned'] as num?)?.toInt() ?? 0;
+
+        if (gpa == null) {
+          return const SizedBox.shrink();
+        }
+
+        final pct = scale > 0 ? (gpa / scale).clamp(0.0, 1.0) : 0.0;
+        final gpaColor = gpa >= scale * 0.85
+            ? AppColors.success
+            : gpa >= scale * 0.7
+                ? AppColors.info
+                : gpa >= scale * 0.5
+                    ? AppColors.warning
+                    : AppColors.error;
+
+        return CampusCard(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 64,
+                height: 64,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 64,
+                      height: 64,
+                      child: CircularProgressIndicator(
+                        value: pct,
+                        strokeWidth: 6,
+                        backgroundColor: gpaColor.withValues(alpha: 0.12),
+                        valueColor: AlwaysStoppedAnimation(gpaColor),
+                      ),
+                    ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          gpa.toStringAsFixed(2),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: gpaColor,
+                                  ),
+                        ),
+                        Text(
+                          '/${scale.toStringAsFixed(1)}',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelSmall
+                              ?.copyWith(color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Cumulative GPA',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$earned of $attempted credits earned',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _gpaStat(
+      BuildContext context, String label, String value, Color color) {
     return Column(
       children: [
-        Text(value, style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-            )),
+        Text(value,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                )),
         const SizedBox(height: 4),
         Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
@@ -930,6 +1193,422 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
     if (grade.startsWith('B')) return AppColors.info;
     if (grade.startsWith('C')) return AppColors.warning;
     return AppColors.error;
+  }
+
+  Widget _buildMaterialsTab(bool isDark) {
+    return FutureBuilder<List<dynamic>>(
+      future: _materialsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                'Could not load your study materials right now.',
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
+
+        final all = snapshot.data ?? const [];
+        final query = _searchQuery.trim().toLowerCase();
+        final filtered = query.isEmpty
+            ? all
+            : all.where((raw) {
+                final m = Map<String, dynamic>.from(raw as Map);
+                final haystack =
+                    '${m['title'] ?? ''} ${m['courseCode'] ?? ''} ${m['category'] ?? ''} ${m['fileName'] ?? ''}'
+                        .toLowerCase();
+                return haystack.contains(query);
+              }).toList();
+
+        if (all.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                'No study materials have been added yet.',
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
+        if (filtered.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                'No materials match "$_searchQuery".',
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
+
+        final groups = <String, List<Map<String, dynamic>>>{};
+        for (final raw in filtered) {
+          final m = Map<String, dynamic>.from(raw as Map);
+          final code = (m['courseCode'] ?? 'General').toString();
+          groups.putIfAbsent(code, () => []).add(m);
+        }
+
+        final codes = groups.keys.toList()..sort();
+        for (final code in codes) {
+          groups[code]!.sort((a, b) {
+            final ca = _materialCategoryOrder
+                .indexOf((a['category'] ?? '').toString());
+            final cb = _materialCategoryOrder
+                .indexOf((b['category'] ?? '').toString());
+            if (ca != cb) return ca.compareTo(cb);
+            return (a['title'] ?? '')
+                .toString()
+                .toLowerCase()
+                .compareTo((b['title'] ?? '').toString().toLowerCase());
+          });
+        }
+
+        final entries = <Object>[];
+        for (final code in codes) {
+          final list = groups[code]!;
+          final courseName = list.first['course'] is Map
+              ? ((list.first['course'] as Map)['name'] ?? code).toString()
+              : code;
+          entries.add(_MaterialSection(code, courseName, list.length));
+          entries.addAll(list);
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.only(top: 4, bottom: 100),
+          physics: const BouncingScrollPhysics(),
+          itemCount: entries.length,
+          itemBuilder: (context, index) {
+            final entry = entries[index];
+            if (entry is _MaterialSection) {
+              return _buildMaterialSectionHeader(entry, isDark);
+            }
+            final material = entry as Map<String, dynamic>;
+            return _MaterialCard(
+              material: material,
+              isDark: isDark,
+              onTap: () => _openMaterial(material),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildMaterialSectionHeader(_MaterialSection section, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.primaryAccent.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              section.code,
+              style: const TextStyle(
+                color: AppColors.primaryAccent,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              section.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '${section.count}',
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: AppColors.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openMaterial(Map<String, dynamic> material) {
+    final path = (material['fileUrl'] ?? '').toString();
+    if (path.isEmpty) return;
+    final id = (material['id'] ?? '').toString();
+    if (id.isNotEmpty) {
+      ref.read(apiServiceProvider).recordMaterialDownload(id);
+    }
+    final rawSize = material['sizeBytes'];
+    final sizeBytes = rawSize is num
+        ? rawSize.toInt()
+        : int.tryParse('${rawSize ?? ''}') ?? 0;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MaterialViewerScreen(
+          title: (material['title'] ?? material['fileName'] ?? 'Material')
+              .toString(),
+          courseCode: (material['courseCode'] ?? '').toString(),
+          category: (material['category'] ?? '').toString(),
+          fileUrl: path,
+          mimeType: (material['mimeType'] ?? '').toString(),
+          sizeBytes: sizeBytes,
+        ),
+      ),
+    );
+  }
+
+  static const List<String> _materialCategoryOrder = [
+    'lectures',
+    'notes',
+    'readings',
+    'labs',
+    'tutorials',
+    'assignments',
+    'past_papers',
+    'projects',
+    'code',
+    'images',
+    'course_info',
+    'other',
+  ];
+}
+
+class _MaterialSection {
+  final String code;
+  final String name;
+  final int count;
+
+  const _MaterialSection(this.code, this.name, this.count);
+}
+
+class _MaterialCard extends StatelessWidget {
+  final Map<String, dynamic> material;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  const _MaterialCard({
+    required this.material,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final category = (material['category'] ?? 'other').toString();
+    final title =
+        (material['title'] ?? material['fileName'] ?? 'Untitled').toString();
+    final size = _formatSize(material['sizeBytes']);
+    final color = _colorForCategory(category);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      child: Material(
+        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : Colors.grey.withValues(alpha: 0.08),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child:
+                      Icon(_iconForCategory(category), size: 20, color: color),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Text(
+                            _labelForCategory(category),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: color,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                          ),
+                          if (size.isNotEmpty) ...[
+                            Text(
+                              ' · ',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: AppColors.textSecondary),
+                            ),
+                            Text(
+                              size,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(
+                  LucideIcons.chevronRight,
+                  size: 18,
+                  color: AppColors.textSecondary,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static String _formatSize(dynamic raw) {
+    final bytes =
+        raw is num ? raw.toDouble() : double.tryParse('${raw ?? ''}') ?? 0;
+    if (bytes <= 0) {
+      return '';
+    }
+    if (bytes >= 1024 * 1024) {
+      return '${(bytes / 1024 / 1024).toStringAsFixed(1)} MB';
+    }
+    if (bytes >= 1024) {
+      return '${(bytes / 1024).toStringAsFixed(0)} KB';
+    }
+    return '${bytes.toStringAsFixed(0)} B';
+  }
+
+  static String _labelForCategory(String category) {
+    switch (category) {
+      case 'lectures':
+        return 'Lecture';
+      case 'labs':
+        return 'Lab';
+      case 'tutorials':
+        return 'Tutorial';
+      case 'assignments':
+        return 'Assignment';
+      case 'past_papers':
+        return 'Past paper';
+      case 'notes':
+        return 'Notes';
+      case 'projects':
+        return 'Project';
+      case 'readings':
+        return 'Reading';
+      case 'code':
+        return 'Code';
+      case 'images':
+        return 'Image';
+      case 'course_info':
+        return 'Course info';
+      default:
+        return 'Material';
+    }
+  }
+
+  static IconData _iconForCategory(String category) {
+    switch (category) {
+      case 'lectures':
+        return LucideIcons.fileText;
+      case 'labs':
+        return LucideIcons.flaskConical;
+      case 'tutorials':
+        return LucideIcons.clipboardList;
+      case 'assignments':
+        return LucideIcons.fileSpreadsheet;
+      case 'past_papers':
+        return LucideIcons.fileQuestion;
+      case 'notes':
+        return LucideIcons.bookOpen;
+      case 'projects':
+        return LucideIcons.folderOpen;
+      case 'readings':
+        return LucideIcons.bookOpen;
+      case 'code':
+        return LucideIcons.code;
+      case 'images':
+        return LucideIcons.image;
+      case 'course_info':
+        return LucideIcons.graduationCap;
+      default:
+        return LucideIcons.file;
+    }
+  }
+
+  static Color _colorForCategory(String category) {
+    switch (category) {
+      case 'lectures':
+        return AppColors.primaryAccent;
+      case 'labs':
+        return AppColors.info;
+      case 'tutorials':
+        return AppColors.tertiaryAccent;
+      case 'assignments':
+        return AppColors.warning;
+      case 'past_papers':
+        return AppColors.error;
+      case 'notes':
+        return AppColors.secondaryAccent;
+      case 'projects':
+        return AppColors.primaryAccent;
+      case 'readings':
+        return AppColors.secondaryAccent;
+      case 'code':
+        return AppColors.success;
+      case 'images':
+        return AppColors.info;
+      case 'course_info':
+        return AppColors.tertiaryAccent;
+      default:
+        return AppColors.textSecondary;
+    }
   }
 }
 
@@ -978,7 +1657,8 @@ class _CourseCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: course.color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
@@ -993,7 +1673,8 @@ class _CourseCard extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              Icon(LucideIcons.moreVertical, size: 16, color: AppColors.textSecondary),
+              const Icon(LucideIcons.moreVertical,
+                  size: 16, color: AppColors.textSecondary),
             ],
           ),
           const SizedBox(height: 12),
@@ -1001,23 +1682,28 @@ class _CourseCard extends StatelessWidget {
           const SizedBox(height: 6),
           Row(
             children: [
-              Icon(LucideIcons.user, size: 14, color: AppColors.textSecondary),
+              const Icon(LucideIcons.user,
+                  size: 14, color: AppColors.textSecondary),
               const SizedBox(width: 6),
-              Text(course.professor, style: Theme.of(context).textTheme.bodySmall),
+              Text(course.professor,
+                  style: Theme.of(context).textTheme.bodySmall),
             ],
           ),
           const SizedBox(height: 4),
           Row(
             children: [
-              Icon(LucideIcons.clock, size: 14, color: AppColors.textSecondary),
+              const Icon(LucideIcons.clock,
+                  size: 14, color: AppColors.textSecondary),
               const SizedBox(width: 6),
-              Text(course.schedule, style: Theme.of(context).textTheme.bodySmall),
+              Text(course.schedule,
+                  style: Theme.of(context).textTheme.bodySmall),
             ],
           ),
           const SizedBox(height: 4),
           Row(
             children: [
-              Icon(LucideIcons.mapPin, size: 14, color: AppColors.textSecondary),
+              const Icon(LucideIcons.mapPin,
+                  size: 14, color: AppColors.textSecondary),
               const SizedBox(width: 6),
               Text(course.room, style: Theme.of(context).textTheme.bodySmall),
             ],
@@ -1026,17 +1712,19 @@ class _CourseCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.primaryAccent.withValues(alpha: isDark ? 0.12 : 0.06),
+              color: AppColors.primaryAccent
+                  .withValues(alpha: isDark ? 0.12 : 0.06),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(LucideIcons.arrowRight, size: 14, color: AppColors.primaryAccent),
+                const Icon(LucideIcons.arrowRight,
+                    size: 14, color: AppColors.primaryAccent),
                 const SizedBox(width: 6),
                 Text(
                   'Next: ${course.nextClass}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.primaryAccent,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,

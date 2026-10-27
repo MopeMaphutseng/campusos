@@ -5,11 +5,11 @@ export class CreateMarketplaceModule1700000000003 implements MigrationInterface 
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-      CREATE TYPE "listing_status_enum" AS ENUM ('active', 'sold', 'reserved', 'removed', 'flagged');
-      CREATE TYPE "listing_condition_enum" AS ENUM ('new', 'like_new', 'good', 'fair', 'poor');
-      CREATE TYPE "report_status_enum" AS ENUM ('pending', 'reviewing', 'resolved', 'dismissed');
+      DO $$ BEGIN CREATE TYPE "listing_status_enum" AS ENUM ('active', 'sold', 'reserved', 'removed', 'flagged'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+      DO $$ BEGIN CREATE TYPE "listing_condition_enum" AS ENUM ('new', 'like_new', 'good', 'fair', 'poor'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+      DO $$ BEGIN CREATE TYPE "report_status_enum" AS ENUM ('pending', 'reviewing', 'resolved', 'dismissed'); EXCEPTION WHEN duplicate_object THEN null; END $$;
 
-      CREATE TABLE "marketplace_listings" (
+      CREATE TABLE IF NOT EXISTS "marketplace_listings" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "seller_id" UUID NOT NULL REFERENCES "users"("id"),
@@ -28,10 +28,10 @@ export class CreateMarketplaceModule1700000000003 implements MigrationInterface 
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "deleted_at" TIMESTAMPTZ
       );
-      CREATE INDEX "idx_listings_university" ON "marketplace_listings" ("university_id");
-      CREATE INDEX "idx_listings_category" ON "marketplace_listings" ("university_id", "category");
+      CREATE INDEX IF NOT EXISTS "idx_listings_university" ON "marketplace_listings" ("university_id");
+      CREATE INDEX IF NOT EXISTS "idx_listings_category" ON "marketplace_listings" ("university_id", "category");
 
-      CREATE TABLE "marketplace_reviews" (
+      CREATE TABLE IF NOT EXISTS "marketplace_reviews" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "reviewer_id" UUID NOT NULL REFERENCES "users"("id"),
@@ -42,7 +42,7 @@ export class CreateMarketplaceModule1700000000003 implements MigrationInterface 
         "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
-      CREATE TABLE "reports" (
+      CREATE TABLE IF NOT EXISTS "reports" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "reporter_id" UUID NOT NULL REFERENCES "users"("id"),
@@ -58,7 +58,7 @@ export class CreateMarketplaceModule1700000000003 implements MigrationInterface 
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
-      CREATE TABLE "scholarships" (
+      CREATE TABLE IF NOT EXISTS "scholarships" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "title" VARCHAR(255) NOT NULL,
@@ -78,7 +78,7 @@ export class CreateMarketplaceModule1700000000003 implements MigrationInterface 
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
-      CREATE TABLE "job_listings" (
+      CREATE TABLE IF NOT EXISTS "job_listings" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "employer_id" UUID REFERENCES "users"("id"),
@@ -98,7 +98,7 @@ export class CreateMarketplaceModule1700000000003 implements MigrationInterface 
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
-      CREATE TABLE "innovation_projects" (
+      CREATE TABLE IF NOT EXISTS "innovation_projects" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "owner_id" UUID NOT NULL REFERENCES "users"("id"),
@@ -117,7 +117,7 @@ export class CreateMarketplaceModule1700000000003 implements MigrationInterface 
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
-      CREATE TABLE "research_calls" (
+      CREATE TABLE IF NOT EXISTS "research_calls" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "supervisor_id" UUID REFERENCES "users"("id"),
@@ -131,7 +131,7 @@ export class CreateMarketplaceModule1700000000003 implements MigrationInterface 
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
-      CREATE TABLE "tutor_sessions" (
+      CREATE TABLE IF NOT EXISTS "tutor_sessions" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "user_id" UUID NOT NULL REFERENCES "users"("id"),
@@ -144,7 +144,7 @@ export class CreateMarketplaceModule1700000000003 implements MigrationInterface 
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
-      CREATE TABLE "health_appointments" (
+      CREATE TABLE IF NOT EXISTS "health_appointments" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "patient_id" UUID NOT NULL REFERENCES "users"("id"),
@@ -157,7 +157,7 @@ export class CreateMarketplaceModule1700000000003 implements MigrationInterface 
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
-      CREATE TABLE "analytics_events" (
+      CREATE TABLE IF NOT EXISTS "analytics_events" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "event_type" VARCHAR(100) NOT NULL,
@@ -166,9 +166,9 @@ export class CreateMarketplaceModule1700000000003 implements MigrationInterface 
         "metadata" JSONB NOT NULL DEFAULT '{}',
         "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
-      CREATE INDEX "idx_analytics_university" ON "analytics_events" ("university_id", "event_type");
+      CREATE INDEX IF NOT EXISTS "idx_analytics_university" ON "analytics_events" ("university_id", "event_type");
 
-      CREATE TABLE "transactions" (
+      CREATE TABLE IF NOT EXISTS "transactions" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "user_id" UUID NOT NULL REFERENCES "users"("id"),
@@ -184,67 +184,10 @@ export class CreateMarketplaceModule1700000000003 implements MigrationInterface 
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
-      CREATE TABLE "credentials" (
-        "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        "university_id" UUID NOT NULL REFERENCES "universities"("id"),
-        "user_id" UUID NOT NULL REFERENCES "users"("id"),
-        "type" VARCHAR(50) NOT NULL,
-        "credential" JSONB NOT NULL,
-        "is_revoked" BOOLEAN NOT NULL DEFAULT false,
-        "revoked_at" TIMESTAMPTZ,
-        "issued_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        "expires_at" TIMESTAMPTZ,
-        "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-
-      CREATE TABLE "conversations" (
-        "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        "university_id" UUID NOT NULL REFERENCES "universities"("id"),
-        "title" VARCHAR(255),
-        "type" VARCHAR(20) NOT NULL DEFAULT 'direct',
-        "participants" JSONB NOT NULL DEFAULT '[]',
-        "last_message_at" TIMESTAMPTZ,
-        "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-
-      CREATE TABLE "messages" (
-        "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        "university_id" UUID NOT NULL REFERENCES "universities"("id"),
-        "conversation_id" UUID NOT NULL REFERENCES "conversations"("id"),
-        "sender_id" UUID NOT NULL REFERENCES "users"("id"),
-        "content" TEXT NOT NULL,
-        "type" VARCHAR(20) NOT NULL DEFAULT 'text',
-        "is_read" BOOLEAN NOT NULL DEFAULT false,
-        "read_at" TIMESTAMPTZ,
-        "edited_at" TIMESTAMPTZ,
-        "deleted_at" TIMESTAMPTZ,
-        "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-      CREATE INDEX "idx_messages_conversation" ON "messages" ("conversation_id", "created_at");
-
-      CREATE TABLE "notifications" (
-        "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        "university_id" UUID NOT NULL REFERENCES "universities"("id"),
-        "user_id" UUID NOT NULL REFERENCES "users"("id"),
-        "title" VARCHAR(255) NOT NULL,
-        "body" TEXT NOT NULL,
-        "type" VARCHAR(50) NOT NULL,
-        "module" VARCHAR(50),
-        "data" JSONB NOT NULL DEFAULT '{}',
-        "is_read" BOOLEAN NOT NULL DEFAULT false,
-        "read_at" TIMESTAMPTZ,
-        "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-      CREATE INDEX "idx_notifications_user" ON "notifications" ("user_id", "is_read");
     `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE "notifications"`);
-    await queryRunner.query(`DROP TABLE "messages"`);
-    await queryRunner.query(`DROP TABLE "conversations"`);
-    await queryRunner.query(`DROP TABLE "credentials"`);
     await queryRunner.query(`DROP TABLE "transactions"`);
     await queryRunner.query(`DROP TABLE "analytics_events"`);
     await queryRunner.query(`DROP TABLE "health_appointments"`);

@@ -1,10 +1,14 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:campusos/core/widgets/main_shell.dart';
 import 'package:campusos/features/auth/screens/login_screen.dart';
 import 'package:campusos/features/auth/screens/register_screen.dart';
 import 'package:campusos/features/auth/screens/verify_email_screen.dart';
+import 'package:campusos/features/dashboard/screens/dashboard_screen.dart';
+import 'package:campusos/features/academics/screens/academics_screen.dart';
+import 'package:campusos/features/library/screens/library_screen.dart';
+import 'package:campusos/features/marketplace/screens/marketplace_screen.dart';
+import 'package:campusos/features/messaging/screens/messaging_screen.dart';
 import 'package:campusos/features/campus-life/screens/campus_map_screen.dart';
 import 'package:campusos/features/mentorship/screens/mentorship_screen.dart';
 import 'package:campusos/features/scholarships/screens/scholarships_screen.dart';
@@ -24,7 +28,6 @@ import 'package:campusos/features/credentials/screens/credentials_screen.dart';
 import 'package:campusos/features/planner/screens/study_planner_screen.dart';
 import 'package:campusos/features/planner/screens/business_assistant_screen.dart';
 import 'package:campusos/features/profile/screens/profile_screen.dart';
-import 'package:campusos/core/utils/storage.dart';
 
 final authStateProvider = StateProvider<bool>((ref) => false);
 
@@ -64,14 +67,51 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/verify-email',
         builder: (context, state) => const VerifyEmailScreen(),
       ),
-      ShellRoute(
-        builder: (context, state, child) => MainShell(),
-        routes: [
-          GoRoute(path: '/', builder: (_, __) => const Scaffold()),
-          GoRoute(path: '/academics', builder: (_, __) => const Scaffold()),
-          GoRoute(path: '/library', builder: (_, __) => const Scaffold()),
-          GoRoute(path: '/marketplace', builder: (_, __) => const Scaffold()),
-          GoRoute(path: '/messages', builder: (_, __) => const Scaffold()),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) => MainShell(
+          navigationShell: navigationShell,
+        ),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/',
+                builder: (context, state) => const DashboardScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/academics',
+                builder: (context, state) => const AcademicsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/library',
+                builder: (context, state) => const LibraryScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/marketplace',
+                builder: (context, state) => const MarketplaceScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/messages',
+                builder: (context, state) => const MessagingScreen(),
+              ),
+            ],
+          ),
         ],
       ),
       GoRoute(path: '/campus-map', builder: (_, __) => const CampusMapScreen()),

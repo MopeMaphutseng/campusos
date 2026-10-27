@@ -191,7 +191,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
       data: (jobs) {
         final filtered = _filterJobs(jobs);
         if (filtered.isEmpty) {
-          return EmptyState(
+          return const EmptyState(
             icon: LucideIcons.briefcase,
             title: 'No jobs found',
             message: 'Try adjusting your filters or search.',
@@ -213,9 +213,9 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
 
   Widget _buildTrackerTab(bool isDark) {
     final applications = [
-      _ApplicationData('Vodacom Lesotho', 'Software Eng. Intern', 'Interview', AppColors.warning),
-      _ApplicationData('Standard Bank', 'Junior Developer', 'Applied', AppColors.info),
-      _ApplicationData('UNDP Lesotho', 'Digital Intern', 'Rejected', AppColors.error),
+      const _ApplicationData('Vodacom Lesotho', 'Software Eng. Intern', 'Interview', AppColors.warning),
+      const _ApplicationData('Standard Bank', 'Junior Developer', 'Applied', AppColors.info),
+      const _ApplicationData('UNDP Lesotho', 'Digital Intern', 'Rejected', AppColors.error),
     ];
 
     return ListView(

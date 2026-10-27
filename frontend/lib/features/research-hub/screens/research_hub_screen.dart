@@ -212,7 +212,7 @@ class _ResearchHubScreenState extends ConsumerState<ResearchHubScreen> {
                 ),
               ),
             ] else ...[
-              SliverToBoxAdapter(
+              const SliverToBoxAdapter(
                 child: SectionHeader(title: 'Cross-Institution Board', actionText: 'Post Opportunity'),
               ),
               SliverList(
@@ -306,7 +306,7 @@ class _ResearchCallCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(LucideIcons.calendar, size: 14, color: AppColors.textSecondary),
+              const Icon(LucideIcons.calendar, size: 14, color: AppColors.textSecondary),
               const SizedBox(width: 4),
               Text(
                 daysLeft > 0 ? '$daysLeft days left' : 'Closed',
@@ -315,7 +315,7 @@ class _ResearchCallCard extends StatelessWidget {
                     ),
               ),
               const SizedBox(width: 16),
-              Icon(LucideIcons.users, size: 14, color: AppColors.textSecondary),
+              const Icon(LucideIcons.users, size: 14, color: AppColors.textSecondary),
               const SizedBox(width: 4),
               Text('${call.slots} slots', style: Theme.of(context).textTheme.bodySmall),
             ],

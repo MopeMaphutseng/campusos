@@ -33,7 +33,7 @@ class _EventData {
 }
 
 final _demoEvents = [
-  _EventData(
+  const _EventData(
     name: 'Annual Career Fair',
     dateTime: 'Fri, Aug 14 · 9:00 AM – 4:00 PM',
     location: 'Student Center, Main Hall',
@@ -46,7 +46,7 @@ final _demoEvents = [
     icon: LucideIcons.briefcase,
     gradient: AppColors.heroGradient,
   ),
-  _EventData(
+  const _EventData(
     name: 'Basketball Tournament Finals',
     dateTime: 'Sat, Aug 22 · 2:00 PM – 6:00 PM',
     location: 'Indoor Sports Arena',
@@ -59,7 +59,7 @@ final _demoEvents = [
     icon: LucideIcons.trophy,
     gradient: AppColors.warmGradient,
   ),
-  _EventData(
+  const _EventData(
     name: 'End-of-Year Social Gala',
     dateTime: 'Sat, Sep 5 · 7:00 PM – 11:00 PM',
     location: 'Campus Amphitheatre',
@@ -72,7 +72,7 @@ final _demoEvents = [
     icon: LucideIcons.music,
     gradient: AppColors.successGradient,
   ),
-  _EventData(
+  const _EventData(
     name: 'Research Symposium 2026',
     dateTime: 'Wed, Aug 19 · 10:00 AM – 3:00 PM',
     location: 'Library Auditorium',
@@ -83,13 +83,13 @@ final _demoEvents = [
     organizer: 'Faculty of Science & Technology',
     ticketPrice: null,
     icon: LucideIcons.microscope,
-    gradient: const LinearGradient(
+    gradient: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: [AppColors.violet, AppColors.indigo],
     ),
   ),
-  _EventData(
+  const _EventData(
     name: 'Cultural Festival & Food Fair',
     dateTime: 'Thu, Aug 27 · 11:00 AM – 7:00 PM',
     location: 'University Quad',
@@ -100,13 +100,13 @@ final _demoEvents = [
     organizer: 'Cultural Affairs Committee',
     ticketPrice: 'M30 (entry)',
     icon: LucideIcons.globe,
-    gradient: const LinearGradient(
+    gradient: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: [AppColors.cyan, AppColors.cyanText],
     ),
   ),
-  _EventData(
+  const _EventData(
     name: 'Tech Talk: AI in Africa',
     dateTime: 'Mon, Aug 31 · 2:00 PM – 4:00 PM',
     location: 'Engineering Block, Room 201',
@@ -117,13 +117,13 @@ final _demoEvents = [
     organizer: 'Computer Science Department',
     ticketPrice: null,
     icon: LucideIcons.brain,
-    gradient: const LinearGradient(
+    gradient: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: [AppColors.orange, AppColors.orangeText],
     ),
   ),
-  _EventData(
+  const _EventData(
     name: 'Startup Pitch Night',
     dateTime: 'Wed, Sep 9 · 5:30 PM – 8:00 PM',
     location: 'Innovation Hub, Ground Floor',
@@ -136,7 +136,7 @@ final _demoEvents = [
     icon: LucideIcons.rocket,
     gradient: AppColors.heroGradient,
   ),
-  _EventData(
+  const _EventData(
     name: 'Spoken Word & Poetry Slam',
     dateTime: 'Fri, Sep 11 · 6:00 PM – 9:00 PM',
     location: 'Performing Arts Centre',
@@ -149,7 +149,7 @@ final _demoEvents = [
     icon: LucideIcons.feather,
     gradient: AppColors.warmGradient,
   ),
-  _EventData(
+  const _EventData(
     name: 'Faculty vs Faculty Soccer Match',
     dateTime: 'Tue, Sep 15 · 4:00 PM – 6:00 PM',
     location: 'Main Sports Field',
@@ -162,7 +162,7 @@ final _demoEvents = [
     icon: LucideIcons.circle,
     gradient: AppColors.successGradient,
   ),
-  _EventData(
+  const _EventData(
     name: 'Board Games Night',
     dateTime: 'Sat, Sep 19 · 6:00 PM – 10:00 PM',
     location: 'Student Lounge, Block C',
@@ -173,7 +173,7 @@ final _demoEvents = [
     organizer: 'Social Activities Committee',
     ticketPrice: null,
     icon: LucideIcons.dices,
-    gradient: const LinearGradient(
+    gradient: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: [AppColors.tertiaryAccent, AppColors.emeraldText],
@@ -320,7 +320,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    Icon(LucideIcons.clock, size: 12, color: AppColors.textSecondary),
+                                    const Icon(LucideIcons.clock, size: 12, color: AppColors.textSecondary),
                                     const SizedBox(width: 4),
                                     Text(
                                       event.dateTime,
@@ -331,7 +331,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                                 const SizedBox(height: 2),
                                 Row(
                                   children: [
-                                    Icon(LucideIcons.mapPin, size: 12, color: AppColors.textSecondary),
+                                    const Icon(LucideIcons.mapPin, size: 12, color: AppColors.textSecondary),
                                     const SizedBox(width: 4),
                                     Text(
                                       event.location,
@@ -344,7 +344,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                                   children: [
                                     StatusBadge(text: _categoryLabel(event.category), color: catColor, isSmall: true),
                                     const SizedBox(width: 8),
-                                    Icon(LucideIcons.userCheck, size: 12, color: AppColors.tertiaryAccent),
+                                    const Icon(LucideIcons.userCheck, size: 12, color: AppColors.tertiaryAccent),
                                     const SizedBox(width: 3),
                                     Text(
                                       '${event.goingCount} going',
@@ -358,7 +358,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                               ],
                             ),
                           ),
-                          Icon(
+                          const Icon(
                             LucideIcons.chevronRight,
                             size: 18,
                             color: AppColors.textSecondary,

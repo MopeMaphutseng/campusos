@@ -45,7 +45,7 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> {
                     children: [
                       Row(
                         children: [
-                          Icon(LucideIcons.sparkles, size: 18, color: AppColors.secondaryAccent),
+                          const Icon(LucideIcons.sparkles, size: 18, color: AppColors.secondaryAccent),
                           const SizedBox(width: 8),
                           Text('AI Match', style: Theme.of(context).textTheme.titleSmall),
                           const Spacer(),
@@ -98,7 +98,7 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> {
                   return true;
                 }).toList();
                 if (filtered.isEmpty) {
-                  return SliverFillRemaining(
+                  return const SliverFillRemaining(
                     child: EmptyState(
                       icon: LucideIcons.award,
                       title: 'No scholarships found',
@@ -120,7 +120,7 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SectionHeader(title: 'Application Checklist'),
+                    const SectionHeader(title: 'Application Checklist'),
                     CampusCard(
                       child: Column(
                         children: [
@@ -270,7 +270,7 @@ class _ScholarshipCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(LucideIcons.calendar, size: 14, color: AppColors.textSecondary),
+              const Icon(LucideIcons.calendar, size: 14, color: AppColors.textSecondary),
               const SizedBox(width: 4),
               Text(
                 daysLeft > 0 ? '$daysLeft days left' : 'Deadline passed',

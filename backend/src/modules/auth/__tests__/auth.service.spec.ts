@@ -5,6 +5,8 @@ import { User } from '../../tenants/entities/user.entity';
 import { University } from '../../tenants/entities/university.entity';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { VerificationService } from '../services/verification.service';
+import { EmailService } from '../../email/email.service';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -35,6 +37,16 @@ describe('AuthService', () => {
     }),
   };
 
+  const mockVerificationService = {
+    issueCode: jest.fn(),
+    checkCode: jest.fn(),
+  };
+
+  const mockEmailService = {
+    verificationEnabled: jest.fn().mockReturnValue(false),
+    send: jest.fn().mockResolvedValue({ ok: true }),
+  };
+
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -43,6 +55,8 @@ describe('AuthService', () => {
         { provide: getRepositoryToken(University), useValue: mockUniversityRepo },
         { provide: JwtService, useValue: mockJwtService },
         { provide: ConfigService, useValue: mockConfigService },
+        { provide: VerificationService, useValue: mockVerificationService },
+        { provide: EmailService, useValue: mockEmailService },
       ],
     }).compile();
 

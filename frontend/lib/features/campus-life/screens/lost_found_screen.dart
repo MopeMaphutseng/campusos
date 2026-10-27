@@ -233,7 +233,7 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen>
               ),
             ),
             const SizedBox(height: 20),
-            Icon(LucideIcons.clipboardList, size: 48, color: AppColors.primaryAccent),
+            const Icon(LucideIcons.clipboardList, size: 48, color: AppColors.primaryAccent),
             const SizedBox(height: 16),
             Text(
               'Report an Item',
@@ -402,7 +402,7 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen>
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Icon(LucideIcons.mapPin, size: 12, color: AppColors.textSecondary),
+                        const Icon(LucideIcons.mapPin, size: 12, color: AppColors.textSecondary),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -419,7 +419,7 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen>
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        Icon(LucideIcons.calendar, size: 12, color: AppColors.textSecondary),
+                        const Icon(LucideIcons.calendar, size: 12, color: AppColors.textSecondary),
                         const SizedBox(width: 4),
                         Text(
                           item.date,
@@ -497,7 +497,7 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen>
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Icon(LucideIcons.mapPin, size: 12, color: AppColors.textSecondary),
+                        const Icon(LucideIcons.mapPin, size: 12, color: AppColors.textSecondary),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -514,7 +514,7 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen>
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        Icon(LucideIcons.calendar, size: 12, color: AppColors.textSecondary),
+                        const Icon(LucideIcons.calendar, size: 12, color: AppColors.textSecondary),
                         const SizedBox(width: 4),
                         Text(
                           item.date,

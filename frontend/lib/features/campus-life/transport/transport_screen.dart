@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:campusos/core/theme/app_colors.dart';
 import 'package:campusos/core/widgets/widgets.dart';
+import 'package:campusos/features/campus-life/providers/campus_life_providers.dart';
 
 class TransportScreen extends ConsumerStatefulWidget {
   const TransportScreen({super.key});
@@ -14,55 +15,7 @@ class TransportScreen extends ConsumerStatefulWidget {
 class _TransportScreenState extends ConsumerState<TransportScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  String? _selectedRoute;
-
-  final _routes = const [
-    _RouteData(
-      name: 'Main Campus Loop',
-      number: 'A',
-      start: 'Main Gate',
-      end: 'Science Block',
-      fare: 5.0,
-      schedule: 'Every 15 min, 07:00 – 18:00',
-      stops: ['Main Gate', 'Library', 'Admin Block', 'Student Centre', 'Science Block'],
-    ),
-    _RouteData(
-      name: 'Residence Shuttle',
-      number: 'B',
-      start: 'Boys Hostel',
-      end: 'Main Campus',
-      fare: 3.0,
-      schedule: 'Every 20 min, 06:30 – 22:00',
-      stops: ['Boys Hostel', 'Girls Hostel', 'Postgraduate Village', 'Main Campus'],
-    ),
-    _RouteData(
-      name: 'Town Connector',
-      number: 'C',
-      start: 'Campus',
-      end: 'Town Centre',
-      fare: 8.0,
-      schedule: 'Every 30 min, 08:00 – 17:00',
-      stops: ['Campus', 'Shopping Mall', 'Bus Terminal', 'Town Centre'],
-    ),
-    _RouteData(
-      name: 'Evening Shuttle',
-      number: 'D',
-      start: 'Library',
-      end: 'Hostels',
-      fare: 4.0,
-      schedule: 'Every 25 min, 18:00 – 23:00',
-      stops: ['Library', 'Science Block', 'Sports Complex', 'Hostels'],
-    ),
-    _RouteData(
-      name: 'Weekend Express',
-      number: 'E',
-      start: 'Main Campus',
-      end: 'City Mall',
-      fare: 10.0,
-      schedule: 'Every 45 min, 09:00 – 16:00 (Sat & Sun)',
-      stops: ['Main Campus', 'City Mall'],
-    ),
-  ];
+  String? _selectedRouteId;
 
   final _ridePosts = const [
     _RidePostData(
@@ -94,11 +47,6 @@ class _TransportScreenState extends ConsumerState<TransportScreen>
       seats: 4,
     ),
   ];
-
-  List<_RouteData> get _filteredRoutes {
-    if (_selectedRoute == null) return _routes;
-    return _routes.where((r) => r.name == _selectedRoute).toList();
-  }
 
   @override
   void initState() {
@@ -141,56 +89,75 @@ class _TransportScreenState extends ConsumerState<TransportScreen>
   }
 
   Widget _buildRoutesTab(bool isDark) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              children: [
-                CampusChip(
-                  label: 'All Routes',
-                  isSelected: _selectedRoute == null,
-                  onTap: () => setState(() => _selectedRoute = null),
-                  icon: LucideIcons.bus,
-                ),
-                const SizedBox(width: 8),
-                ..._routes.map((r) => Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: CampusChip(
-                    label: 'Route ${r.number}',
-                    isSelected: _selectedRoute == r.name,
-                    onTap: () => setState(() => _selectedRoute = r.name),
-                    icon: LucideIcons.map,
-                  ),
-                )),
-              ],
-            ),
-          ),
-        ),
-        Expanded(
-          child: _filteredRoutes.isEmpty
-              ? EmptyState(
-                  icon: LucideIcons.bus,
-                  title: 'No Routes Found',
-                  message: 'Try selecting a different filter.',
-                )
-              : ListView.builder(
+    final routesAsync = ref.watch(transportRoutesProvider);
+    return routesAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => const EmptyState(
+        icon: LucideIcons.wifiOff,
+        title: 'Shuttle data unavailable',
+        message: 'Could not reach the transport service. Pull to retry.',
+      ),
+      data: (routes) {
+        final filtered = _selectedRouteId == null
+            ? routes
+            : routes.where((r) => r.id == _selectedRouteId).toList();
+        return RefreshIndicator(
+          onRefresh: () async => ref.invalidate(transportRoutesProvider),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
-                  itemCount: _filteredRoutes.length,
-                  itemBuilder: (context, index) {
-                    final route = _filteredRoutes[index];
-                    return _buildRouteCard(route, isDark);
-                  },
+                  child: Row(
+                    children: [
+                      CampusChip(
+                        label: 'All Routes',
+                        isSelected: _selectedRouteId == null,
+                        onTap: () => setState(() => _selectedRouteId = null),
+                        icon: LucideIcons.bus,
+                      ),
+                      const SizedBox(width: 8),
+                      ...routes.map((r) => Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: CampusChip(
+                              label: 'Route ${r.routeNumber}',
+                              isSelected: _selectedRouteId == r.id,
+                              onTap: () => setState(() => _selectedRouteId = r.id),
+                              icon: LucideIcons.map,
+                            ),
+                          )),
+                    ],
+                  ),
                 ),
-        ),
-      ],
+              ),
+              Expanded(
+                child: filtered.isEmpty
+                    ? const EmptyState(
+                        icon: LucideIcons.bus,
+                        title: 'No Routes Found',
+                        message: 'Try selecting a different filter.',
+                      )
+                    : ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics()),
+                        itemCount: filtered.length,
+                        itemBuilder: (context, index) =>
+                            _buildRouteCard(filtered[index], isDark),
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildRouteCard(_RouteData route, bool isDark) {
+  Widget _buildRouteCard(TransportRoute route, bool isDark) {
+    final liveAsync = ref.watch(shuttleLiveProvider(route.id));
+    final live = liveAsync.asData?.value;
+
     return CampusCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,7 +171,7 @@ class _TransportScreenState extends ConsumerState<TransportScreen>
                   color: AppColors.secondaryAccent.withValues(alpha: isDark ? 0.15 : 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(LucideIcons.bus, color: AppColors.secondaryAccent, size: 22),
+                child: const Icon(LucideIcons.bus, color: AppColors.secondaryAccent, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -212,13 +179,24 @@ class _TransportScreenState extends ConsumerState<TransportScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      route.name,
+                      route.routeName,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
                     ),
                     const SizedBox(height: 2),
-                    StatusBadge(text: 'Route ${route.number}', color: AppColors.secondaryAccent, isSmall: true),
+                    Row(
+                      children: [
+                        StatusBadge(
+                          text: 'Route ${route.routeNumber}',
+                          color: AppColors.secondaryAccent,
+                          isSmall: true,
+                        ),
+                        const SizedBox(width: 6),
+                        if (live?.lastUpdated != null)
+                          StatusBadge.success('Live'),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -229,8 +207,8 @@ class _TransportScreenState extends ConsumerState<TransportScreen>
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'M${route.fare.toStringAsFixed(0)}',
-                  style: TextStyle(
+                  route.fare > 0 ? 'M${route.fare.toStringAsFixed(0)}' : 'Free',
+                  style: const TextStyle(
                     color: AppColors.primaryAccent,
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
@@ -242,23 +220,27 @@ class _TransportScreenState extends ConsumerState<TransportScreen>
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(LucideIcons.flag, size: 14, color: AppColors.textSecondary),
-              const SizedBox(width: 6),
-              Text(
-                route.start,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Icon(LucideIcons.arrowRight, size: 14, color: AppColors.textSecondary),
-              ),
-              Icon(LucideIcons.flag, size: 14, color: AppColors.secondaryAccent),
+              const Icon(LucideIcons.flag, size: 14, color: AppColors.textSecondary),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  route.end,
+                  route.startLocation,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Icon(LucideIcons.arrowRight, size: 14, color: AppColors.textSecondary),
+              ),
+              const Icon(LucideIcons.flag, size: 14, color: AppColors.secondaryAccent),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  route.endLocation,
+                  overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -269,37 +251,105 @@ class _TransportScreenState extends ConsumerState<TransportScreen>
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(LucideIcons.clock, size: 14, color: AppColors.textSecondary),
+              const Icon(LucideIcons.users, size: 14, color: AppColors.textSecondary),
               const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  route.schedule,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                      ),
-                ),
+              Text(
+                '${route.vehicleType} · ${route.capacity} seats',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                    ),
               ),
             ],
           ),
-          if (route.stops.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Text(
-              'Stops: ${route.stops.join(' → ')}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
-                    fontSize: 11,
-                  ),
+          const Divider(height: 20),
+          if (liveAsync.isLoading && live == null)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Center(
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            )
+          else if (live != null && live.stops.isNotEmpty)
+            _buildStopTimeline(live, isDark)
+          else if (route.stops.isNotEmpty)
+            _buildStopTimeline(
+              ShuttleLive(
+                lat: null,
+                lng: null,
+                lastUpdated: null,
+                stops: route.stops,
+              ),
+              isDark,
             ),
-          ],
         ],
       ),
     );
   }
 
+  Widget _buildStopTimeline(ShuttleLive live, bool isDark) {
+    final stops = [...live.stops]..sort((a, b) => a.order.compareTo(b.order));
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(LucideIcons.navigation, size: 14, color: AppColors.primaryAccent),
+            const SizedBox(width: 6),
+            Text(
+              'Next arrivals',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ...stops.map((stop) {
+          final eta = stop.etaMinutes;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              children: [
+                Icon(LucideIcons.mapPin,
+                    size: 12,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    stop.name,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12),
+                  ),
+                ),
+                if (stop.distanceKm != null)
+                  Text(
+                    '${stop.distanceKm!.toStringAsFixed(1)} km',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontSize: 11,
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                        ),
+                  ),
+                const SizedBox(width: 8),
+                if (eta != null)
+                  StatusBadge.success('$eta min')
+                else
+                  StatusBadge.info('—'),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
   Widget _buildRideSharingTab(bool isDark) {
     if (_ridePosts.isEmpty) {
-      return EmptyState(
+      return const EmptyState(
         icon: LucideIcons.car,
         title: 'No Ride Shares',
         message: 'Check back later for available rides.',
@@ -331,7 +381,7 @@ class _TransportScreenState extends ConsumerState<TransportScreen>
                   color: AppColors.tertiaryAccent.withValues(alpha: isDark ? 0.15 : 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(LucideIcons.user, color: AppColors.tertiaryAccent, size: 22),
+                child: const Icon(LucideIcons.user, color: AppColors.tertiaryAccent, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -347,7 +397,7 @@ class _TransportScreenState extends ConsumerState<TransportScreen>
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        Icon(LucideIcons.clock, size: 12, color: AppColors.textSecondary),
+                        const Icon(LucideIcons.clock, size: 12, color: AppColors.textSecondary),
                         const SizedBox(width: 4),
                         Text(
                           post.time,
@@ -374,7 +424,7 @@ class _TransportScreenState extends ConsumerState<TransportScreen>
               Expanded(
                 child: Row(
                   children: [
-                    Icon(LucideIcons.mapPin, size: 14, color: AppColors.textSecondary),
+                    const Icon(LucideIcons.mapPin, size: 14, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
@@ -388,14 +438,14 @@ class _TransportScreenState extends ConsumerState<TransportScreen>
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
                 child: Icon(LucideIcons.arrowRight, size: 16, color: AppColors.secondaryAccent),
               ),
               Expanded(
                 child: Row(
                   children: [
-                    Icon(LucideIcons.mapPin, size: 14, color: AppColors.secondaryAccent),
+                    const Icon(LucideIcons.mapPin, size: 14, color: AppColors.secondaryAccent),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
@@ -435,26 +485,6 @@ class _TransportScreenState extends ConsumerState<TransportScreen>
       ),
     );
   }
-}
-
-class _RouteData {
-  final String name;
-  final String number;
-  final String start;
-  final String end;
-  final double fare;
-  final String schedule;
-  final List<String> stops;
-
-  const _RouteData({
-    required this.name,
-    required this.number,
-    required this.start,
-    required this.end,
-    required this.fare,
-    required this.schedule,
-    required this.stops,
-  });
 }
 
 class _RidePostData {

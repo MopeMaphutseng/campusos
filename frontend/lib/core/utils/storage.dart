@@ -14,27 +14,22 @@ class SecureStorage {
       await _secureStorage.write(key: _tokenKey, value: accessToken);
       await _secureStorage.write(key: _refreshKey, value: refreshToken);
     } catch (_) {}
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_tokenKey, accessToken);
-    await prefs.setString(_refreshKey, refreshToken);
   }
 
   static Future<String?> getAccessToken() async {
     try {
       final t = await _secureStorage.read(key: _tokenKey);
-      if (t != null) return t;
+      if (t != null && t.isNotEmpty) return t;
     } catch (_) {}
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey);
+    return null;
   }
 
   static Future<String?> getRefreshToken() async {
     try {
       final t = await _secureStorage.read(key: _refreshKey);
-      if (t != null) return t;
+      if (t != null && t.isNotEmpty) return t;
     } catch (_) {}
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_refreshKey);
+    return null;
   }
 
   static Future<void> saveUniversityId(String id) async {
@@ -112,13 +107,17 @@ class SecureStorage {
     await prefs.setBool(_rememberMeKey, rememberMe);
     if (rememberMe) {
       await prefs.setString(_rememberedEmailKey, email);
-      await prefs.setString(_rememberedPasswordKey, password);
+      try {
+        await _secureStorage.write(key: _rememberedPasswordKey, value: password);
+      } catch (_) {}
       if (universityName != null) {
         await prefs.setString(_rememberedUniversityKey, universityName);
       }
     } else {
       await prefs.remove(_rememberedEmailKey);
-      await prefs.remove(_rememberedPasswordKey);
+      try {
+        await _secureStorage.delete(key: _rememberedPasswordKey);
+      } catch (_) {}
       await prefs.remove(_rememberedUniversityKey);
     }
   }
@@ -134,8 +133,11 @@ class SecureStorage {
   }
 
   static Future<String?> getRememberedPassword() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_rememberedPasswordKey);
+    try {
+      final p = await _secureStorage.read(key: _rememberedPasswordKey);
+      if (p != null && p.isNotEmpty) return p;
+    } catch (_) {}
+    return null;
   }
 
   static Future<String?> getRememberedUniversity() async {

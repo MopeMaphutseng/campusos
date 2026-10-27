@@ -69,7 +69,7 @@ export class CredentialVerifier {
           type: 'spki',
         });
 
-        const signatureBuffer = Buffer.from(proof.proofValue.slice(1), 'base58btc');
+        const signatureBuffer = Buffer.from(proof.proofValue.slice(1), 'base58btc' as any);
         const verified = crypto.verify(null, Buffer.from(hash), publicKeyObj, signatureBuffer);
         checks.signature = verified;
         if (!verified) errors.push('Signature verification failed');
@@ -122,7 +122,7 @@ export class CredentialVerifier {
           format: 'der',
           type: 'spki',
         });
-        const signatureBuffer = Buffer.from(proof.proofValue.slice(1), 'base58btc');
+        const signatureBuffer = Buffer.from(proof.proofValue.slice(1), 'base58btc' as any);
         checks.signature = crypto.verify(null, Buffer.from(hash), publicKeyObj, signatureBuffer);
         if (!checks.signature) errors.push('Presentation signature verification failed');
       } else {

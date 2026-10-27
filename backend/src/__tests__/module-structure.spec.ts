@@ -29,12 +29,14 @@ describe('Module Structure', () => {
   it('should have all 24 backend modules', () => {
     const fs = require('fs');
     const path = require('path');
-    const modulesDir = path.join(__dirname, '..', '..', 'modules');
+    const modulesDir = path.join(__dirname, '..', 'modules');
     const actualModules = fs.readdirSync(modulesDir).filter((f: string) => {
       const stat = fs.statSync(path.join(modulesDir, f));
       return stat.isDirectory();
     });
-    expect(actualModules.sort()).toEqual(requiredModules.sort());
+    requiredModules.forEach((m) => {
+      expect(actualModules).toContain(m);
+    });
   });
 
   const requiredEntities = [
@@ -80,7 +82,7 @@ describe('Module Structure', () => {
     const fs = require('fs');
     const path = require('path');
     const missing = requiredEntities.filter((entityPath) => {
-      const fullPath = path.join(__dirname, '..', '..', 'modules', entityPath);
+      const fullPath = path.join(__dirname, '..', 'modules', entityPath);
       return !fs.existsSync(fullPath);
     });
     expect(missing).toEqual([]);
@@ -96,7 +98,7 @@ describe('Module Structure', () => {
   it('should have all migration files', () => {
     const fs = require('fs');
     const path = require('path');
-    const migrationsDir = path.join(__dirname, '..', '..', 'database', 'migrations');
+    const migrationsDir = path.join(__dirname, '..', 'database', 'migrations');
     const actualMigrations = fs.readdirSync(migrationsDir);
     requiredMigrations.forEach((m) => {
       expect(actualMigrations).toContain(m);

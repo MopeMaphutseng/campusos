@@ -30,11 +30,13 @@ services:
       # Use in-memory cache so no Redis instance is required.
       - key: CACHE_STORE
         value: memory
-      # Build the schema from the entity model (the migration set is partial).
+      # Migrations are the single source of truth. All migrations are
+      # idempotent (IF NOT EXISTS / DO-block enum guards) so they are safe to
+      # run against both fresh and previously synchronize-built databases.
       - key: DB_SYNCHRONIZE
-        value: "true"
-      - key: DB_MIGRATIONS_RUN
         value: "false"
+      - key: DB_MIGRATIONS_RUN
+        value: "true"
       - key: DB_HOST
         fromDatabase:
           name: campusos-db

@@ -73,7 +73,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> with SingleTickerProvid
     final shopsAsync = ref.watch(foodShopsProvider(type));
     return shopsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, st) => EmptyState(
+      error: (e, st) => const EmptyState(
         icon: LucideIcons.alertCircle,
         title: 'Something went wrong',
         message: 'Pull to refresh and try again',
@@ -234,7 +234,7 @@ class _ShopCard extends StatelessWidget {
                         Text(shop.rating.toStringAsFixed(1), style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
                         if (shop.deliveryAvailable) ...[
                           const SizedBox(width: 6),
-                          Icon(LucideIcons.truck, size: 12, color: AppColors.success),
+                          const Icon(LucideIcons.truck, size: 12, color: AppColors.success),
                         ],
                       ],
                     ),

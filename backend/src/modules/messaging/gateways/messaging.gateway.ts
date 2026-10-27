@@ -369,7 +369,7 @@ export class MessagingGateway implements OnGatewayInit, OnGatewayConnection, OnG
     const room = this.server.sockets?.adapter?.rooms?.get?.(`university_${universityId}`);
     if (room) {
       for (const socketId of room) {
-        const socket = this.server.sockets?.sockets?.get?.(socketId);
+        const socket = this.server.sockets?.sockets?.get?.(socketId) as AuthenticatedSocket | undefined;
         if (socket?.userId) {
           users.add(socket.userId);
         }

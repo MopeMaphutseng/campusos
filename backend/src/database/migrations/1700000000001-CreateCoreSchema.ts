@@ -5,13 +5,13 @@ export class CreateCoreSchema1700000000001 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-      CREATE TYPE "university_status_enum" AS ENUM ('active', 'suspended', 'onboarding', 'trial');
-      CREATE TYPE "user_role_enum" AS ENUM ('student', 'faculty', 'staff', 'alumni', 'admin', 'super_admin', 'mentor', 'employer');
-      CREATE TYPE "verification_status_enum" AS ENUM ('unverified', 'pending', 'verified', 'rejected');
+      DO $$ BEGIN CREATE TYPE "university_status_enum" AS ENUM ('active', 'suspended', 'onboarding', 'trial'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+      DO $$ BEGIN CREATE TYPE "user_role_enum" AS ENUM ('student', 'faculty', 'staff', 'alumni', 'admin', 'super_admin', 'mentor', 'employer'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+      DO $$ BEGIN CREATE TYPE "verification_status_enum" AS ENUM ('unverified', 'pending', 'verified', 'rejected'); EXCEPTION WHEN duplicate_object THEN null; END $$;
     `);
 
     await queryRunner.query(`
-      CREATE TABLE "universities" (
+      CREATE TABLE IF NOT EXISTS "universities" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "name" VARCHAR(255) NOT NULL UNIQUE,
         "slug" VARCHAR(100) NOT NULL UNIQUE,
@@ -34,7 +34,7 @@ export class CreateCoreSchema1700000000001 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      CREATE TABLE "users" (
+      CREATE TABLE IF NOT EXISTS "users" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "email" VARCHAR(255) NOT NULL,
@@ -61,12 +61,12 @@ export class CreateCoreSchema1700000000001 implements MigrationInterface {
         "deleted_at" TIMESTAMPTZ,
         UNIQUE ("university_id", "email")
       );
-      CREATE INDEX "idx_users_university_email" ON "users" ("university_id", "email");
-      CREATE INDEX "idx_users_university_student_id" ON "users" ("university_id", "student_id") WHERE "student_id" IS NOT NULL;
+      CREATE INDEX IF NOT EXISTS "idx_users_university_email" ON "users" ("university_id", "email");
+      CREATE INDEX IF NOT EXISTS "idx_users_university_student_id" ON "users" ("university_id", "student_id") WHERE "student_id" IS NOT NULL;
     `);
 
     await queryRunner.query(`
-      CREATE TABLE "university_modules" (
+      CREATE TABLE IF NOT EXISTS "university_modules" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "module_key" VARCHAR(100) NOT NULL,

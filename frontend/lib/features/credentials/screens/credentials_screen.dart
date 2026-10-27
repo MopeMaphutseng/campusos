@@ -271,7 +271,7 @@ class _CredentialsScreenState extends ConsumerState<CredentialsScreen> {
         children: [
           Row(
             children: [
-              Icon(LucideIcons.info, size: 18, color: AppColors.info),
+              const Icon(LucideIcons.info, size: 18, color: AppColors.info),
               const SizedBox(width: 8),
               Text('How it works', style: Theme.of(context).textTheme.titleSmall),
             ],
@@ -287,9 +287,9 @@ class _CredentialsScreenState extends ConsumerState<CredentialsScreen> {
           Row(
             children: [
               _infoStep(context, '1', 'Earn'),
-              Icon(LucideIcons.chevronRight, size: 14, color: AppColors.textSecondary),
+              const Icon(LucideIcons.chevronRight, size: 14, color: AppColors.textSecondary),
               _infoStep(context, '2', 'Issue'),
-              Icon(LucideIcons.chevronRight, size: 14, color: AppColors.textSecondary),
+              const Icon(LucideIcons.chevronRight, size: 14, color: AppColors.textSecondary),
               _infoStep(context, '3', 'Share'),
             ],
           ),
@@ -311,7 +311,7 @@ class _CredentialsScreenState extends ConsumerState<CredentialsScreen> {
           child: Center(
             child: Text(
               step,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 color: AppColors.primaryAccent,
@@ -357,7 +357,7 @@ class _CredentialsScreenState extends ConsumerState<CredentialsScreen> {
               ],
             ),
           ),
-          Icon(LucideIcons.checkCircle, color: AppColors.tertiaryAccent, size: 22),
+          const Icon(LucideIcons.checkCircle, color: AppColors.tertiaryAccent, size: 22),
         ],
       ),
     );
@@ -427,14 +427,14 @@ class _CredentialCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(LucideIcons.calendar, size: 14, color: AppColors.textSecondary),
+              const Icon(LucideIcons.calendar, size: 14, color: AppColors.textSecondary),
               const SizedBox(width: 4),
               Text(
                 'Issued ${credential.issueDate}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(width: 12),
-              Icon(LucideIcons.clock, size: 14, color: AppColors.textSecondary),
+              const Icon(LucideIcons.clock, size: 14, color: AppColors.textSecondary),
               const SizedBox(width: 4),
               Text(
                 'Exp: ${credential.expiryDate}',

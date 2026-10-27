@@ -35,10 +35,10 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                   Expanded(
                     child: TextField(
                       onChanged: (v) => setState(() => _searchQuery = v),
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         hintText: 'Search marketplace...',
-                        prefixIcon: const Icon(LucideIcons.search, size: 18),
-                        prefixIconConstraints: const BoxConstraints(minWidth: 40),
+                        prefixIcon: Icon(LucideIcons.search, size: 18),
+                        prefixIconConstraints: BoxConstraints(minWidth: 40),
                       ),
                     ),
                   ),
@@ -95,7 +95,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                 data: (listings) {
                   final filtered = _filterListings(listings);
                   if (filtered.isEmpty) {
-                    return EmptyState(
+                    return const EmptyState(
                       icon: LucideIcons.store,
                       title: 'No listings found',
                       message: 'Try adjusting your filters or search.',
@@ -354,7 +354,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
             Wrap(
               spacing: 8,
               children: ['New', 'Like New', 'Good', 'Fair'].map((c) {
-                return CampusChip(label: c, onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Coming soon'), duration: Duration(seconds: 1))));
+                return CampusChip(label: c, onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coming soon'), duration: Duration(seconds: 1))));
               }).toList(),
             ),
             const SizedBox(height: 20),
@@ -373,7 +373,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
             Wrap(
               spacing: 8,
               children: ['On Campus', '1 km', '5 km', 'Any'].map((d) {
-                return CampusChip(label: d, onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Coming soon'), duration: Duration(seconds: 1))));
+                return CampusChip(label: d, onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coming soon'), duration: Duration(seconds: 1))));
               }).toList(),
             ),
             const SizedBox(height: 24),

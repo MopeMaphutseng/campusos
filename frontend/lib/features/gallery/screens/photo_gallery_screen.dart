@@ -136,18 +136,18 @@ class PhotoGalleryScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              bottom: TabBar(
+              bottom: const TabBar(
                 indicatorColor: Colors.white,
                 labelColor: Colors.white,
                 unselectedLabelColor: Colors.white60,
-                tabs: const [
+                tabs: [
                   Tab(text: 'Photos'),
                   Tab(text: 'Stories'),
                 ],
               ),
             ),
           ],
-          body: TabBarView(
+          body: const TabBarView(
             children: [
               _PhotosTab(photos: kCampusMedia),
               _StoriesTab(photos: kCampusMedia),
@@ -225,7 +225,7 @@ class _FeaturedCard extends StatelessWidget {
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => FullscreenPhotoViewer(photos: kCampusMedia, initialIndex: 0),
+          builder: (_) => const FullscreenPhotoViewer(photos: kCampusMedia, initialIndex: 0),
         ),
       ),
       child: ClipRRect(

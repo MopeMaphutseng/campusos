@@ -82,7 +82,7 @@ class _MessagingScreenState extends ConsumerState<MessagingScreen> {
                       return _ConversationTile(
                         conversation: convo,
                         isDark: isDark,
-                        onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Coming soon'), duration: Duration(seconds: 1))),
+                        onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coming soon'), duration: Duration(seconds: 1))),
                       );
                     },
                   );

@@ -15,12 +15,12 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
   String _selectedType = 'All';
 
   final _events = [
-    _EventData('AI & Data Science Hackathon', 'competition', 'Engineering Block', '2026-09-15', '2026-09-17', LucideIcons.brain, AppColors.tertiaryAccent, '48-hour hackathon focused on AI solutions for African challenges. Teams of 3-5. Grand prize M15,000.', true, 'M100'),
-    _EventData('Entrepreneurship Workshop', 'workshop', 'Business School Auditorium', '2026-08-20', '2026-08-20', LucideIcons.briefcase, AppColors.secondaryAccent, 'Learn startup fundamentals from successful founders. Covers ideation, MVP, funding.', false, 'Free'),
-    _EventData('Annual Research Conference', 'conference', 'Main Campus Hall', '2026-10-05', '2026-10-07', LucideIcons.microscope, AppColors.primaryAccent, 'Three-day conference featuring research presentations, keynote speakers, and networking.', true, 'M250'),
-    _EventData('Web Development Bootcamp', 'workshop', 'CS Lab 101', '2026-09-01', '2026-09-30', LucideIcons.globe, AppColors.info, 'Four-week intensive web development bootcamp. HTML, CSS, JavaScript, React, Node.js.', false, 'Free'),
-    _EventData('Debate Competition', 'competition', 'Humanities Hall', '2026-08-25', '2026-08-25', LucideIcons.messageSquare, AppColors.warning, 'Inter-university debate competition. Topics include politics, technology, and social issues.', false, 'Free'),
-    _EventData('Career Fair 2026', 'seminar', 'Student Centre', '2026-09-20', '2026-09-20', LucideIcons.users, AppColors.primaryAccent, 'Meet top employers from across Africa. Bring your CV. Dress code: formal.', false, 'Free'),
+    const _EventData('AI & Data Science Hackathon', 'competition', 'Engineering Block', '2026-09-15', '2026-09-17', LucideIcons.brain, AppColors.tertiaryAccent, '48-hour hackathon focused on AI solutions for African challenges. Teams of 3-5. Grand prize M15,000.', true, 'M100'),
+    const _EventData('Entrepreneurship Workshop', 'workshop', 'Business School Auditorium', '2026-08-20', '2026-08-20', LucideIcons.briefcase, AppColors.secondaryAccent, 'Learn startup fundamentals from successful founders. Covers ideation, MVP, funding.', false, 'Free'),
+    const _EventData('Annual Research Conference', 'conference', 'Main Campus Hall', '2026-10-05', '2026-10-07', LucideIcons.microscope, AppColors.primaryAccent, 'Three-day conference featuring research presentations, keynote speakers, and networking.', true, 'M250'),
+    const _EventData('Web Development Bootcamp', 'workshop', 'CS Lab 101', '2026-09-01', '2026-09-30', LucideIcons.globe, AppColors.info, 'Four-week intensive web development bootcamp. HTML, CSS, JavaScript, React, Node.js.', false, 'Free'),
+    const _EventData('Debate Competition', 'competition', 'Humanities Hall', '2026-08-25', '2026-08-25', LucideIcons.messageSquare, AppColors.warning, 'Inter-university debate competition. Topics include politics, technology, and social issues.', false, 'Free'),
+    const _EventData('Career Fair 2026', 'seminar', 'Student Centre', '2026-09-20', '2026-09-20', LucideIcons.users, AppColors.primaryAccent, 'Meet top employers from across Africa. Bring your CV. Dress code: formal.', false, 'Free'),
   ];
 
   @override
@@ -68,7 +68,7 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
               ),
             ),
             if (filtered.isEmpty)
-              SliverFillRemaining(
+              const SliverFillRemaining(
                 child: EmptyState(icon: LucideIcons.calendarX, title: 'No events found',
                   message: 'Try a different category'),
               )
@@ -106,7 +106,7 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
                                       const SizedBox(height: 4),
                                       Row(
                                         children: [
-                                          Icon(LucideIcons.calendar, size: 12, color: AppColors.textSecondary),
+                                          const Icon(LucideIcons.calendar, size: 12, color: AppColors.textSecondary),
                                           const SizedBox(width: 4),
                                           Text('${e.startDate}${e.startDate != e.endDate ? ' - ${e.endDate}' : ''}',
                                             style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary)),
@@ -115,7 +115,7 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
                                       const SizedBox(height: 2),
                                       Row(
                                         children: [
-                                          Icon(LucideIcons.mapPin, size: 12, color: AppColors.textSecondary),
+                                          const Icon(LucideIcons.mapPin, size: 12, color: AppColors.textSecondary),
                                           const SizedBox(width: 4),
                                           Expanded(
                                             child: Text(e.location,
@@ -136,7 +136,7 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
                                     ],
                                   ),
                                 ),
-                                Icon(LucideIcons.chevronRight, color: AppColors.textSecondary, size: 18),
+                                const Icon(LucideIcons.chevronRight, color: AppColors.textSecondary, size: 18),
                               ],
                             ),
                           ),

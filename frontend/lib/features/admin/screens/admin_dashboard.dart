@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:html' as html;
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +8,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:campusos/core/theme/app_colors.dart';
 import 'package:campusos/core/services/api_service.dart';
 import 'package:campusos/core/utils/storage.dart';
+import 'package:campusos/core/utils/file_picker_helper.dart';
 import 'package:campusos/core/routes/app_router.dart';
 
 class _ContentType {
@@ -582,23 +581,22 @@ class _ContentFormState extends ConsumerState<_ContentForm> {
   }
 
   Future<void> _pickFile(_Field f) async {
-    final input = html.FileUploadInputElement();
-    input.accept = f.kind == _FieldKind.image
-        ? 'image/*'
-        : '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.csv,.zip,image/*';
-    input.click();
-    await input.onChange.first;
-    if (input.files == null || input.files!.isEmpty) return;
-    final file = input.files!.first;
-    final reader = html.FileReader();
-    reader.readAsArrayBuffer(file);
-    await reader.onLoad.first;
-    final bytes = (reader.result as ByteBuffer).asUint8List();
-    if (bytes.isEmpty) return;
+    PickedFile? picked;
+    try {
+      picked = await pickFileForUpload(isImage: f.kind == _FieldKind.image);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('File pick not available: $e')));
+      }
+      return;
+    }
+    if (picked == null || picked.bytes.isEmpty) return;
+    final file = picked;
     try {
       final url = await ref
           .read(apiServiceProvider)
-          .adminUpload(file.name, bytes.toList());
+          .adminUpload(file.name, file.bytes);
       if (!mounted) return;
       setState(() => _files[f.key] = {'url': url, 'name': file.name});
     } catch (e) {

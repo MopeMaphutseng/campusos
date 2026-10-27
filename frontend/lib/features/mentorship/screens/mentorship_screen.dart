@@ -161,7 +161,7 @@ class _MentorshipScreenState extends ConsumerState<MentorshipScreen> {
                         (e) => e.toLowerCase().contains(_selectedField.toLowerCase()),
                       )).toList();
                 if (filtered.isEmpty) {
-                  return SliverFillRemaining(
+                  return const SliverFillRemaining(
                     child: EmptyState(
                       icon: LucideIcons.users,
                       title: 'No mentors found',
@@ -239,7 +239,7 @@ class _MentorCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(LucideIcons.star, size: 14, color: AppColors.secondaryAccent),
+              const Icon(LucideIcons.star, size: 14, color: AppColors.secondaryAccent),
               const SizedBox(width: 3),
               Text(
                 mentor.averageRating.toString(),

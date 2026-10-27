@@ -202,7 +202,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               TextSpan(
                 text: 'Already have an account? ',
                 style: Theme.of(context).textTheme.bodySmall,
-                children: [
+                children: const [
                   TextSpan(
                     text: 'Sign In',
                     style: TextStyle(
@@ -217,8 +217,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         ),
         const SizedBox(height: 24),
         const SizedBox(height: 8),
-        TextField(
-          decoration: const InputDecoration(
+        const TextField(
+          decoration: InputDecoration(
             hintText: 'Search universities...',
             prefixIcon: Icon(LucideIcons.search, size: 18),
           ),
@@ -246,7 +246,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   Expanded(
                     child: Text(uni, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 13)),
                   ),
-                  Icon(Icons.chevron_right, size: 20, color: AppColors.textSecondary),
+                  const Icon(Icons.chevron_right, size: 20, color: AppColors.textSecondary),
                 ],
               ),
             )),

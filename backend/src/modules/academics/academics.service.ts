@@ -4,7 +4,10 @@ import { Repository } from 'typeorm';
 import { Course, CourseStatus } from './entities/course.entity';
 import { TimetableEntry, DayOfWeek } from './entities/timetable.entity';
 import { Enrollment, EnrollmentStatus } from './entities/enrollment.entity';
-import { PaginationDto, PaginatedResult } from '../../common/dto/pagination.dto';
+import { GradeItem } from './entities/grade-item.entity';
+import { CourseMaterial, MaterialCategory } from './entities/course-material.entity';
+import { GpaCalculatorService, GpaSummary } from './services/gpa-calculator.service';
+import { PaginationDto, PaginatedResult, SortOrder } from '../../common/dto/pagination.dto';
 
 @Injectable()
 export class AcademicsService {
@@ -12,6 +15,9 @@ export class AcademicsService {
     @InjectRepository(Course) private courseRepo: Repository<Course>,
     @InjectRepository(TimetableEntry) private timetableRepo: Repository<TimetableEntry>,
     @InjectRepository(Enrollment) private enrollmentRepo: Repository<Enrollment>,
+    @InjectRepository(GradeItem) private gradeItemRepo: Repository<GradeItem>,
+    @InjectRepository(CourseMaterial) private materialRepo: Repository<CourseMaterial>,
+    private gpaCalculator: GpaCalculatorService,
   ) {}
 
   async createCourse(universityId: string, data: Partial<Course>): Promise<Course> {
@@ -61,6 +67,22 @@ export class AcademicsService {
   }
 
   async getTimetable(universityId: string, userId?: string, day?: DayOfWeek): Promise<TimetableEntry[]> {
+    if (userId) {
+      const enrollments = await this.enrollmentRepo.find({
+        where: { universityId, userId, status: EnrollmentStatus.ENROLLED },
+      });
+      const courseIds = enrollments.map((e) => e.courseId).filter(Boolean);
+      if (courseIds.length === 0) {
+        return [];
+      }
+      const qb = this.timetableRepo.createQueryBuilder('t')
+        .where('t.universityId = :universityId', { universityId })
+        .andWhere('t.courseId IN (:...courseIds)', { courseIds });
+      if (day) {
+        qb.andWhere('t.dayOfWeek = :day', { day });
+      }
+      return qb.orderBy('t.startTime', 'ASC').getMany();
+    }
     const where: any = { universityId };
     if (day) where.dayOfWeek = day;
     return this.timetableRepo.find({ where, order: { startTime: 'ASC' } });
@@ -124,6 +146,72 @@ export class AcademicsService {
     return this.enrollmentRepo.save(enrollment);
   }
 
+  async getMyMaterials(
+    universityId: string,
+    userId: string,
+    options: { courseId?: string; category?: string; search?: string } = {},
+  ): Promise<CourseMaterial[]> {
+    const enrollments = await this.enrollmentRepo.find({
+      where: { universityId, userId, status: EnrollmentStatus.ENROLLED },
+    });
+    const courseIds = enrollments.map((e) => e.courseId).filter(Boolean);
+    if (courseIds.length === 0) return [];
+    if (options.courseId && !courseIds.includes(options.courseId)) return [];
+
+    const qb = this.materialRepo.createQueryBuilder('m')
+      .leftJoinAndSelect('m.course', 'course')
+      .where('m.universityId = :universityId', { universityId })
+      .andWhere('m.courseId IN (:...courseIds)', { courseIds });
+
+    if (options.courseId) {
+      qb.andWhere('m.courseId = :courseId', { courseId: options.courseId });
+    }
+    if (options.category) {
+      qb.andWhere('m.category = :category', { category: options.category });
+    }
+    if (options.search) {
+      qb.andWhere(
+        '(m.title ILIKE :search OR m.fileName ILIKE :search OR m.courseCode ILIKE :search)',
+        { search: `%${options.search}%` },
+      );
+    }
+
+    return qb
+      .orderBy('m.courseCode', 'ASC')
+      .addOrderBy('m.category', 'ASC')
+      .addOrderBy('m.title', 'ASC')
+      .getMany();
+  }
+
+  async getCourseMaterials(universityId: string, courseId: string): Promise<CourseMaterial[]> {
+    return this.materialRepo.find({
+      where: { universityId, courseId },
+      relations: ['course'],
+      order: { category: 'ASC', title: 'ASC' },
+    });
+  }
+
+  async createMaterial(
+    universityId: string,
+    userId: string,
+    data: Partial<CourseMaterial>,
+  ): Promise<CourseMaterial> {
+    const material = this.materialRepo.create({
+      ...data,
+      universityId,
+      uploadedBy: data.uploadedBy || userId,
+      category: data.category || MaterialCategory.OTHER,
+    });
+    return this.materialRepo.save(material);
+  }
+
+  async recordMaterialDownload(universityId: string, id: string): Promise<CourseMaterial> {
+    const material = await this.materialRepo.findOne({ where: { id, universityId } });
+    if (!material) throw new NotFoundException('Material not found');
+    material.downloadCount += 1;
+    return this.materialRepo.save(material);
+  }
+
   async getUserEnrollments(universityId: string, userId: string): Promise<Enrollment[]> {
     return this.enrollmentRepo.find({
       where: { universityId, userId },
@@ -135,5 +223,45 @@ export class AcademicsService {
     return this.enrollmentRepo.find({
       where: { universityId, courseId },
     });
+  }
+
+  async getPerformanceSummary(universityId: string, userId: string): Promise<GpaSummary> {
+    const enrollments = await this.enrollmentRepo.find({
+      where: { universityId, userId },
+      relations: ['course'],
+    });
+    return this.gpaCalculator.calculate(enrollments);
+  }
+
+  async getGradeItems(universityId: string, enrollmentId: string): Promise<GradeItem[]> {
+    return this.gradeItemRepo.find({
+      where: { universityId, enrollmentId },
+      order: { gradedAt: 'DESC', createdAt: 'DESC' },
+    });
+  }
+
+  async addGradeItem(
+    universityId: string,
+    data: Partial<GradeItem>,
+  ): Promise<GradeItem> {
+    const item = this.gradeItemRepo.create({ ...data, universityId });
+    return this.gradeItemRepo.save(item);
+  }
+
+  async updateGradeItem(
+    universityId: string,
+    id: string,
+    data: Partial<GradeItem>,
+  ): Promise<GradeItem> {
+    const item = await this.gradeItemRepo.findOne({ where: { id, universityId } });
+    if (!item) throw new NotFoundException('Grade item not found');
+    Object.assign(item, data);
+    return this.gradeItemRepo.save(item);
+  }
+
+  async deleteGradeItem(universityId: string, id: string): Promise<void> {
+    const item = await this.gradeItemRepo.findOne({ where: { id, universityId } });
+    if (!item) throw new NotFoundException('Grade item not found');
+    await this.gradeItemRepo.softRemove(item);
   }
 }

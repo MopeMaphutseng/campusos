@@ -3,13 +3,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:campusos/core/config/api_config.dart';
+import 'package:campusos/core/storage/hive_storage.dart';
 
 class ApiService {
   late final Dio _dio;
   String? _accessToken;
   String? _refreshToken;
   String _universityId = '';
-  String _baseUrl;
+  final String _baseUrl;
 
   /// Called when a 401 proves the session is unrecoverable (refresh token
   /// missing/empty or the refresh call itself was rejected). The owner flips
@@ -17,8 +18,7 @@ class ApiService {
   /// authenticated shell that 401s every request.
   void Function()? onSessionExpired;
 
-  ApiService({String? baseUrl})
-      : _baseUrl = baseUrl ?? ApiConfig.baseUrl {
+  ApiService({String? baseUrl}) : _baseUrl = baseUrl ?? ApiConfig.baseUrl {
     _dio = Dio(BaseOptions(
       baseUrl: _baseUrl,
       connectTimeout: const Duration(seconds: 15),
@@ -69,55 +69,228 @@ class ApiService {
     return opts;
   }
 
-  Future<Response<T>> get<T>(String path, {Map<String, dynamic>? queryParameters, Options? options, Duration? timeout}) {
-    return _dio.get(path, queryParameters: queryParameters, options: _withTimeout(_injectAuth(options), timeout));
+  Future<Response<T>> get<T>(String path,
+      {Map<String, dynamic>? queryParameters,
+      Options? options,
+      Duration? timeout}) {
+    return _dio.get(path,
+        queryParameters: queryParameters,
+        options: _withTimeout(_injectAuth(options), timeout));
   }
 
   /// Live enrollments (with published grades) for the signed-in student.
+  ///
+  /// Offline-first: returns the last cached copy when the network is
+  /// unavailable, and refreshes the cache on every successful call.
   Future<List<dynamic>> getMyEnrollments() async {
-    final res = await get<dynamic>('/api/v1/academics/enrollments', timeout: const Duration(seconds: 10));
+    try {
+      final res = await get<dynamic>('/api/v1/academics/enrollments',
+          timeout: const Duration(seconds: 10));
+      final data = res.data;
+      final list = _asList(data);
+      await _safeCache(() => HiveStorage.cacheEnrollments(list));
+      return list;
+    } catch (e) {
+      final cached = _safeRead(HiveStorage.getCachedEnrollments);
+      if (cached != null) return cached;
+      rethrow;
+    }
+  }
+
+  /// Live weekly timetable entries (already filtered server-side to enrolled
+  /// courses). Offline-first with a local Hive fallback.
+  Future<List<dynamic>> getMyTimetable() async {
+    try {
+      final res = await get<dynamic>('/api/v1/academics/timetable',
+          timeout: const Duration(seconds: 10));
+      final list = _asList(res.data);
+      await _safeCache(() => HiveStorage.cacheTimetable(list));
+      return list;
+    } catch (e) {
+      final cached = _safeRead(HiveStorage.getCachedTimetable);
+      if (cached != null) return cached;
+      rethrow;
+    }
+  }
+
+  /// GPA / academic performance summary with offline fallback.
+  Future<Map<String, dynamic>> getPerformanceSummary() async {
+    try {
+      final res = await get<dynamic>('/api/v1/academics/performance/summary',
+          timeout: const Duration(seconds: 10));
+      final data = res.data;
+      final map = data is Map && data['data'] is Map
+          ? Map<String, dynamic>.from(data['data'] as Map)
+          : data is Map
+              ? Map<String, dynamic>.from(data)
+              : <String, dynamic>{};
+      await _safeCache(() => HiveStorage.cachePerformance(map));
+      return map;
+    } catch (e) {
+      final cached = _safeRead(HiveStorage.getCachedPerformance);
+      if (cached != null) return cached;
+      rethrow;
+    }
+  }
+
+  /// Study materials for the signed-in student's enrolled courses.
+  Future<List<dynamic>> getMyMaterials(
+      {String? courseId, String? category, String? search}) async {
+    final query = <String, dynamic>{};
+    if (courseId != null && courseId.isNotEmpty) query['courseId'] = courseId;
+    if (category != null && category.isNotEmpty) query['category'] = category;
+    if (search != null && search.isNotEmpty) query['search'] = search;
+    final res = await get<dynamic>(
+      '/api/v1/academics/materials',
+      queryParameters: query.isEmpty ? null : query,
+      timeout: const Duration(seconds: 15),
+    );
+    return _asList(res.data);
+  }
+
+  /// Best-effort download/view counter for a study material.
+  Future<void> recordMaterialDownload(String id) async {
+    try {
+      await post<dynamic>('/api/v1/academics/materials/$id/download');
+    } catch (_) {
+      // Non-critical: opening the file must still work if this fails.
+    }
+  }
+
+  /// Live cafeteria menu for a day (defaults to today on the server).
+  Future<List<dynamic>> getCafeteriaMenu(
+      {String? date, String? mealType, String? shopId}) async {
+    final query = <String, dynamic>{};
+    if (date != null) query['date'] = date;
+    if (mealType != null) query['mealType'] = mealType;
+    if (shopId != null) query['shopId'] = shopId;
+    final res = await get<dynamic>(
+      '/api/v1/campus-life/cafeteria/menu',
+      queryParameters: query.isEmpty ? null : query,
+      timeout: const Duration(seconds: 10),
+    );
+    return _asList(res.data);
+  }
+
+  /// Cafeteria menu for the coming week.
+  Future<List<dynamic>> getCafeteriaWeekMenu({String? startDate}) async {
+    final res = await get<dynamic>(
+      '/api/v1/campus-life/cafeteria/menu/week',
+      queryParameters: startDate != null ? {'startDate': startDate} : null,
+      timeout: const Duration(seconds: 10),
+    );
+    return _asList(res.data);
+  }
+
+  /// Places a cafeteria order (CafeteriaOrder entity on the backend).
+  Future<Map<String, dynamic>> createCafeteriaOrder(
+      Map<String, dynamic> body) async {
+    final res = await post<dynamic>(
+      '/api/v1/campus-life/cafeteria/orders',
+      data: body,
+      timeout: const Duration(seconds: 15),
+    );
     final data = res.data;
+    if (data is Map && data['data'] is Map)
+      return Map<String, dynamic>.from(data['data'] as Map);
+    if (data is Map) return Map<String, dynamic>.from(data);
+    return <String, dynamic>{};
+  }
+
+  /// The signed-in user's past cafeteria orders (newest first).
+  Future<List<dynamic>> getCafeteriaOrders() async {
+    final res = await get<dynamic>('/api/v1/campus-life/cafeteria/orders',
+        timeout: const Duration(seconds: 10));
+    return _asList(res.data);
+  }
+
+  /// Live transport routes with current shuttle positions.
+  Future<List<dynamic>> getTransportRoutes() async {
+    final res = await get<dynamic>('/api/v1/campus-life/transport',
+        timeout: const Duration(seconds: 10));
+    return _asList(res.data);
+  }
+
+  /// Live positions for all shuttles on a route.
+  Future<Map<String, dynamic>> getTransportLive(String routeId) async {
+    try {
+      final res = await get<dynamic>(
+          '/api/v1/campus-life/transport/$routeId/live',
+          timeout: const Duration(seconds: 8));
+      final data = res.data;
+      if (data is Map && data['data'] is Map)
+        return Map<String, dynamic>.from(data['data'] as Map);
+      if (data is Map) return Map<String, dynamic>.from(data);
+    } catch (_) {}
+    return <String, dynamic>{};
+  }
+
+  List<dynamic> _asList(dynamic data) {
     if (data is List) return data;
-    if (data is Map && data['data'] is List) return List<dynamic>.from(data['data'] as List);
+    if (data is Map) {
+      if (data['data'] is List) return List<dynamic>.from(data['data'] as List);
+      final inner = data['data'];
+      if (inner is Map && inner['items'] is List) {
+        return List<dynamic>.from(inner['items'] as List);
+      }
+      if (data['items'] is List)
+        return List<dynamic>.from(data['items'] as List);
+    }
     return const [];
   }
 
-  /// Live weekly timetable entries (filtered client-side to enrolled courses).
-  Future<List<dynamic>> getMyTimetable() async {
-    final res = await get<dynamic>('/api/v1/academics/timetable', timeout: const Duration(seconds: 10));
-    final data = res.data;
-    if (data is List) return data;
-    if (data is Map && data['data'] is List) return List<dynamic>.from(data['data'] as List);
-    return const [];
+  Future<void> _safeCache(Future<void> Function() action) async {
+    try {
+      await action();
+    } catch (_) {
+      // Cache is best-effort; never fail a live request because of it.
+    }
+  }
+
+  T? _safeRead<T>(T? Function() reader) {
+    try {
+      return reader();
+    } catch (_) {
+      return null;
+    }
   }
 
   // ---- Admin content management -------------------------------------------
 
   Future<List<dynamic>> adminListContent(String type) async {
-    final res = await get<dynamic>('/api/v1/admin/content/$type', timeout: const Duration(seconds: 20));
+    final res = await get<dynamic>('/api/v1/admin/content/$type',
+        timeout: const Duration(seconds: 20));
     final data = res.data;
     if (data is List) return data;
-    if (data is Map && data['data'] is List) return List<dynamic>.from(data['data'] as List);
+    if (data is Map && data['data'] is List)
+      return List<dynamic>.from(data['data'] as List);
     return const [];
   }
 
-  Future<Map<String, dynamic>> adminCreateContent(String type, Map<String, dynamic> body) async {
-    final res = await post<dynamic>('/api/v1/admin/content/$type', data: body, timeout: const Duration(seconds: 25));
+  Future<Map<String, dynamic>> adminCreateContent(
+      String type, Map<String, dynamic> body) async {
+    final res = await post<dynamic>('/api/v1/admin/content/$type',
+        data: body, timeout: const Duration(seconds: 25));
     final data = res.data;
-    if (data is Map && data['data'] is Map) return Map<String, dynamic>.from(data['data'] as Map);
+    if (data is Map && data['data'] is Map)
+      return Map<String, dynamic>.from(data['data'] as Map);
     if (data is Map) return Map<String, dynamic>.from(data);
     return <String, dynamic>{};
   }
 
-  Future<Map<String, dynamic>> adminUpdateContent(String type, String id, Map<String, dynamic> body) async {
-    final res = await patch<dynamic>('/api/v1/admin/content/$type/$id', data: body, timeout: const Duration(seconds: 25));
+  Future<Map<String, dynamic>> adminUpdateContent(
+      String type, String id, Map<String, dynamic> body) async {
+    final res = await patch<dynamic>('/api/v1/admin/content/$type/$id',
+        data: body, timeout: const Duration(seconds: 25));
     final data = res.data;
-    if (data is Map && data['data'] is Map) return Map<String, dynamic>.from(data['data'] as Map);
+    if (data is Map && data['data'] is Map)
+      return Map<String, dynamic>.from(data['data'] as Map);
     return data is Map ? Map<String, dynamic>.from(data) : <String, dynamic>{};
   }
 
   Future<void> adminDeleteContent(String type, String id) async {
-    await delete<dynamic>('/api/v1/admin/content/$type/$id', timeout: const Duration(seconds: 20));
+    await delete<dynamic>('/api/v1/admin/content/$type/$id',
+        timeout: const Duration(seconds: 20));
   }
 
   /// Uploads a file (image or document) and returns the public URL path.
@@ -128,27 +301,43 @@ class ApiService {
     final res = await _dio.post<dynamic>(
       '/api/v1/admin/uploads',
       data: form,
-      options: _withTimeout(_injectAuth(null), const Duration(seconds: 60))..contentType = 'multipart/form-data',
+      options: _withTimeout(_injectAuth(null), const Duration(seconds: 60))
+        ..contentType = 'multipart/form-data',
     );
     final data = res.data;
-    final inner = (data is Map && data['data'] is Map) ? data['data'] as Map : data as Map;
+    final inner = (data is Map && data['data'] is Map)
+        ? data['data'] as Map
+        : data as Map;
     return (inner['url'] ?? '').toString();
   }
 
-  Future<Response<T>> post<T>(String path, {dynamic data, Map<String, dynamic>? queryParameters, Options? options, Duration? timeout}) {
-    return _dio.post(path, data: data, queryParameters: queryParameters, options: _withTimeout(_injectAuth(options), timeout));
+  Future<Response<T>> post<T>(String path,
+      {dynamic data,
+      Map<String, dynamic>? queryParameters,
+      Options? options,
+      Duration? timeout}) {
+    return _dio.post(path,
+        data: data,
+        queryParameters: queryParameters,
+        options: _withTimeout(_injectAuth(options), timeout));
   }
 
-  Future<Response<T>> put<T>(String path, {dynamic data, Options? options, Duration? timeout}) {
-    return _dio.put(path, data: data, options: _withTimeout(_injectAuth(options), timeout));
+  Future<Response<T>> put<T>(String path,
+      {dynamic data, Options? options, Duration? timeout}) {
+    return _dio.put(path,
+        data: data, options: _withTimeout(_injectAuth(options), timeout));
   }
 
-  Future<Response<T>> patch<T>(String path, {dynamic data, Options? options, Duration? timeout}) {
-    return _dio.patch(path, data: data, options: _withTimeout(_injectAuth(options), timeout));
+  Future<Response<T>> patch<T>(String path,
+      {dynamic data, Options? options, Duration? timeout}) {
+    return _dio.patch(path,
+        data: data, options: _withTimeout(_injectAuth(options), timeout));
   }
 
-  Future<Response<T>> delete<T>(String path, {Options? options, Duration? timeout}) {
-    return _dio.delete(path, options: _withTimeout(_injectAuth(options), timeout));
+  Future<Response<T>> delete<T>(String path,
+      {Options? options, Duration? timeout}) {
+    return _dio.delete(path,
+        options: _withTimeout(_injectAuth(options), timeout));
   }
 
   /// Overrides the receive timeout for a single request (e.g. AI calls that
@@ -192,8 +381,7 @@ class _AuthInterceptor extends Interceptor {
     // Never attempt a refresh from the refresh call itself: the refresh
     // endpoint returns 401 on an invalid token, and retrying here would
     // recurse forever (each pass logging another console error).
-    final isRefreshCall =
-        err.requestOptions.uri.path.endsWith('/auth/refresh');
+    final isRefreshCall = err.requestOptions.uri.path.endsWith('/auth/refresh');
     final canRefresh = err.response?.statusCode == 401 &&
         (_apiService.refreshToken?.isNotEmpty ?? false) &&
         !isRefreshCall &&
@@ -202,7 +390,8 @@ class _AuthInterceptor extends Interceptor {
     if (canRefresh) {
       _isRefreshing = true;
       try {
-        final response = await _apiService._dio.post('/api/v1/auth/refresh', data: {
+        final response =
+            await _apiService._dio.post('/api/v1/auth/refresh', data: {
           'refreshToken': _apiService.refreshToken,
         });
         final data = response.data['data'];
@@ -210,7 +399,8 @@ class _AuthInterceptor extends Interceptor {
           accessToken: data['accessToken'],
           refreshToken: data['refreshToken'],
         );
-        err.requestOptions.headers['Authorization'] = 'Bearer ${data['accessToken']}';
+        err.requestOptions.headers['Authorization'] =
+            'Bearer ${data['accessToken']}';
         final retryResponse = await _apiService._dio.fetch(err.requestOptions);
         handler.resolve(retryResponse);
         return;

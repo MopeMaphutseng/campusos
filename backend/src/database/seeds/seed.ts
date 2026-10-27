@@ -9,6 +9,12 @@ import { LibraryItem, LibraryItemType, LibraryItemAccess } from '../../modules/l
 import { LibraryCategory } from '../../modules/library/entities/library-category.entity';
 import { Listing, ListingCategory, CurrencyCode, ListingStatus } from '../../modules/marketplace/entities/listing.entity';
 import { FoodShop, ShopType, ShopStatus } from '../../modules/marketplace/entities/food-shop.entity';
+import { Course, CourseStatus } from '../../modules/academics/entities/course.entity';
+import { TimetableEntry, DayOfWeek } from '../../modules/academics/entities/timetable.entity';
+import { Enrollment, EnrollmentStatus } from '../../modules/academics/entities/enrollment.entity';
+import { GradeItem, GradeItemCategory } from '../../modules/academics/entities/grade-item.entity';
+import { CafeteriaMenu, MealType } from '../../modules/campus-life/entities/cafeteria-menu.entity';
+import { TransportRoute } from '../../modules/campus-life/entities/transport-route.entity';
 
 const UNIVERSITIES = [
   {
@@ -87,7 +93,12 @@ async function seed() {
     password: process.env.DB_PASSWORD || 'campusos_dev',
     database: process.env.DB_NAME || 'campusos',
     schema: process.env.DB_SCHEMA || 'public',
-    entities: [University, User, UniversityModule, LibraryItem, LibraryCategory, Listing, FoodShop],
+    entities: [
+      University, User, UniversityModule, LibraryItem, LibraryCategory,
+      Listing, FoodShop, Course, TimetableEntry, Enrollment, GradeItem,
+      CafeteriaMenu,
+      TransportRoute,
+    ],
     // Ensure the schema exists before seeding (safe on an empty host DB).
     migrations: [path.join(__dirname, '..', 'migrations', '*{.ts,.js}')],
     migrationsRun:
@@ -202,6 +213,181 @@ async function seed() {
     });
     await userRepo.save(demoAdmin);
     console.log('  ✅ Created admin: admin@campusos.ls');
+  }
+
+  // ---- Academics: courses, timetable, enrollments, grades ------------------
+  const courseRepo = dataSource.getRepository(Course);
+  const timetableRepo = dataSource.getRepository(TimetableEntry);
+  const enrollmentRepo = dataSource.getRepository(Enrollment);
+  const gradeItemRepo = dataSource.getRepository(GradeItem);
+
+  const demoStudent = createdUsers.find(
+    (u) => u.email === 'thabo.mokoena@nul.ls',
+  );
+
+  const courseSeed = [
+    {
+      code: 'CS201',
+      name: 'Data Structures & Algorithms',
+      description: 'Arrays, linked lists, trees, graphs, sorting and searching.',
+      credits: 4,
+      department: 'Computer Science',
+      faculty: 'Faculty of Science and Technology',
+      level: '200',
+      semester: 'Semester 1',
+      academicYear: '2025/2026',
+      instructorName: 'Dr. Sipho Nkosi',
+      grade: 88.5,
+      letter: 'A',
+    },
+    {
+      code: 'CS202',
+      name: 'Database Systems',
+      description: 'Relational modelling, SQL, transactions and indexing.',
+      credits: 3,
+      department: 'Computer Science',
+      faculty: 'Faculty of Science and Technology',
+      level: '200',
+      semester: 'Semester 1',
+      academicYear: '2025/2026',
+      instructorName: 'Dr. Sipho Nkosi',
+      grade: 76,
+      letter: 'B+',
+    },
+    {
+      code: 'MATH201',
+      name: 'Linear Algebra',
+      description: 'Vectors, matrices, eigenvalues and linear transformations.',
+      credits: 3,
+      department: 'Mathematics',
+      faculty: 'Faculty of Science and Technology',
+      level: '200',
+      semester: 'Semester 1',
+      academicYear: '2025/2026',
+      instructorName: 'Nthabiseng Khetho',
+      grade: 68,
+      letter: 'B-',
+    },
+  ];
+
+  const timetableSeed = [
+    { code: 'CS201', day: DayOfWeek.MONDAY, start: '08:30', end: '10:30', venue: 'Lab 3, Science Block', building: 'Science Block', type: 'Lecture' },
+    { code: 'CS202', day: DayOfWeek.MONDAY, start: '11:00', end: '12:30', venue: 'Room 204, Science Block', building: 'Science Block', type: 'Lecture' },
+    { code: 'MATH201', day: DayOfWeek.TUESDAY, start: '09:00', end: '10:30', venue: 'Lecture Hall A', building: 'Main Building', type: 'Lecture' },
+    { code: 'CS201', day: DayOfWeek.WEDNESDAY, start: '14:00', end: '16:00', venue: 'Lab 1, Science Block', building: 'Science Block', type: 'Practical' },
+    { code: 'CS202', day: DayOfWeek.THURSDAY, start: '08:30', end: '10:00', venue: 'Room 204, Science Block', building: 'Science Block', type: 'Tutorial' },
+    { code: 'MATH201', day: DayOfWeek.FRIDAY, start: '10:00', end: '11:30', venue: 'Lecture Hall B', building: 'Main Building', type: 'Lecture' },
+  ];
+
+  const savedCourses: Record<string, Course> = {};
+  for (const c of courseSeed) {
+    let course = await courseRepo.findOne({
+      where: { code: c.code, universityId: primaryUniId },
+    });
+    if (!course) {
+      course = await courseRepo.save(
+        courseRepo.create({
+          universityId: primaryUniId,
+          code: c.code,
+          name: c.name,
+          description: c.description,
+          credits: c.credits,
+          department: c.department,
+          faculty: c.faculty,
+          level: c.level,
+          semester: c.semester,
+          academicYear: c.academicYear,
+          status: CourseStatus.PUBLISHED,
+          enrolledCount: 1,
+        }),
+      );
+      console.log(`  ✅ Created course: ${c.code}`);
+    }
+    savedCourses[c.code] = course;
+  }
+
+  for (const t of timetableSeed) {
+    const course = savedCourses[t.code];
+    if (!course) continue;
+    const exists = await timetableRepo.findOne({
+      where: {
+        universityId: primaryUniId,
+        courseId: course.id,
+        dayOfWeek: t.day,
+        startTime: t.start,
+      },
+    });
+    if (exists) continue;
+    await timetableRepo.save(
+      timetableRepo.create({
+        universityId: primaryUniId,
+        courseId: course.id,
+        courseCode: course.code,
+        courseName: course.name,
+        dayOfWeek: t.day,
+        startTime: t.start,
+        endTime: t.end,
+        venue: t.venue,
+        building: t.building,
+        instructorName: courseSeed.find((c) => c.code === t.code)?.instructorName,
+        type: t.type,
+      }),
+    );
+  }
+  console.log('  ✅ Timetable seeded');
+
+  if (demoStudent) {
+    for (const c of courseSeed) {
+      const course = savedCourses[c.code];
+      if (!course) continue;
+      let enrollment = await enrollmentRepo.findOne({
+        where: {
+          universityId: primaryUniId,
+          userId: demoStudent.id,
+          courseId: course.id,
+        },
+      });
+      if (!enrollment) {
+        enrollment = await enrollmentRepo.save(
+          enrollmentRepo.create({
+            universityId: primaryUniId,
+            userId: demoStudent.id,
+            courseId: course.id,
+            status: EnrollmentStatus.ENROLLED,
+            grade: c.grade as any,
+            letterGrade: c.letter,
+            enrolledAt: new Date('2025-09-01T00:00:00Z'),
+          }),
+        );
+      }
+
+      const existingGrades = await gradeItemRepo.count({
+        where: { universityId: primaryUniId, enrollmentId: enrollment.id },
+      });
+      if (existingGrades === 0) {
+        const items = [
+          { title: 'Midterm Exam', category: GradeItemCategory.MIDTERM, score: Math.round(c.grade), weight: 30 },
+          { title: 'Assignment 1', category: GradeItemCategory.ASSIGNMENT, score: Math.min(100, Math.round(c.grade + 5)), weight: 20 },
+          { title: 'Final Project', category: GradeItemCategory.PROJECT, score: Math.round(c.grade), weight: 50 },
+        ];
+        for (const item of items) {
+          await gradeItemRepo.save(
+            gradeItemRepo.create({
+              universityId: primaryUniId,
+              courseId: course.id,
+              enrollmentId: enrollment.id,
+              title: item.title,
+              category: item.category,
+              score: item.score as any,
+              maxScore: 100 as any,
+              weight: item.weight as any,
+              gradedAt: new Date('2025-11-15T00:00:00Z'),
+            }),
+          );
+        }
+      }
+    }
+    console.log('  ✅ Enrollments & grades seeded for demo student');
   }
 
   const now = new Date();
@@ -329,6 +515,167 @@ async function seed() {
     }));
   }
   console.log('  ✅ Food shops seeded');
+
+  // ---- Cafeteria daily menus (next 7 days) ---------------------------------
+  const menuRepo = dataSource.getRepository(CafeteriaMenu);
+  const seededShops = await foodShopRepo.find({ where: { universityId: primaryUniId } });
+  const menuTemplates: Record<string, Array<{ name: string; price: number; meal: MealType; category: string; flags: string[]; desc: string }>> = {
+    cafeteria: [
+      { name: 'Full Breakfast', price: 45, meal: MealType.BREAKFAST, category: 'Breakfast', flags: [], desc: 'Eggs, toast, beans and coffee' },
+      { name: 'Lunch Special', price: 35, meal: MealType.LUNCH, category: 'Meals', flags: [], desc: 'Rice, chicken and vegetables' },
+      { name: 'Veggie Wrap', price: 28, meal: MealType.LUNCH, category: 'Meals', flags: ['vegetarian'], desc: 'Grilled vegetables in a tortilla' },
+      { name: 'Dinner Platter', price: 42, meal: MealType.DINNER, category: 'Meals', flags: [], desc: 'Papa, moroho and beef stew' },
+    ],
+    mzalas: [
+      { name: 'Burger & Chips', price: 35, meal: MealType.LUNCH, category: 'Meals', flags: [], desc: 'Beef burger with fries' },
+      { name: 'Chicken Kota', price: 28, meal: MealType.LUNCH, category: 'Meals', flags: [], desc: 'Quarter loaf with chips and chicken' },
+      { name: 'Cold Drink', price: 12, meal: MealType.SNACK, category: 'Drinks', flags: [], desc: 'Chilled soft drink 330ml' },
+    ],
+    'ntate moruti kitchen': [
+      { name: 'Papa & Moroho', price: 25, meal: MealType.LUNCH, category: 'Meals', flags: ['vegetarian'], desc: 'Traditional maize meal with greens' },
+      { name: 'Chicken Stew', price: 40, meal: MealType.DINNER, category: 'Meals', flags: [], desc: 'Slow-cooked chicken stew with rice' },
+      { name: 'Vetkoek', price: 15, meal: MealType.SNACK, category: 'Snacks', flags: [], desc: 'Fried dough bun' },
+    ],
+    'ob joint': [
+      { name: 'Kota Special', price: 30, meal: MealType.LUNCH, category: 'Meals', flags: [], desc: 'Loaded quarter loaf' },
+      { name: 'Russian Footlong', price: 25, meal: MealType.LUNCH, category: 'Meals', flags: [], desc: 'Russian sausage with chips' },
+      { name: 'Smiley & Pap', price: 35, meal: MealType.DINNER, category: 'Meals', flags: [], desc: 'Sheep head with pap' },
+    ],
+  };
+
+  let menuCreated = 0;
+  for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+    const d = new Date();
+    d.setDate(d.getDate() + dayOffset);
+    const dateIso = d.toISOString().slice(0, 10);
+    for (const shop of seededShops) {
+      const key = shop.name.toLowerCase();
+      let template: Array<{ name: string; price: number; meal: MealType; category: string; flags: string[]; desc: string }> | undefined;
+      for (const tk of Object.keys(menuTemplates)) {
+        if (key.includes(tk.split(' ')[0])) {
+          template = menuTemplates[tk];
+          break;
+        }
+      }
+      if (!template) continue;
+      for (const item of template) {
+        const exists = await menuRepo.findOne({
+          where: {
+            universityId: primaryUniId,
+            shopId: shop.id,
+            date: dateIso,
+            mealType: item.meal,
+            itemName: item.name,
+          },
+        });
+        if (exists) continue;
+        await menuRepo.save(
+          menuRepo.create({
+            universityId: primaryUniId,
+            shopId: shop.id,
+            shopName: shop.name,
+            date: dateIso,
+            mealType: item.meal,
+            itemName: item.name,
+            description: item.desc,
+            price: item.price as any,
+            currency: 'LSL',
+            category: item.category,
+            dietaryFlags: item.flags,
+            isAvailable: true,
+          }),
+        );
+        menuCreated++;
+      }
+    }
+  }
+  console.log(`  ✅ Cafeteria menus seeded (${menuCreated} items over 7 days)`);
+
+  // ---- Transport / shuttle routes -----------------------------------------
+  const transportRepo = dataSource.getRepository(TransportRoute);
+  // NUL campus (Roma, Lesotho) approximate coordinates.
+  const campusStops = [
+    { name: 'Main Gate', lat: -29.4499, lng: 27.7333, order: 1 },
+    { name: 'Library', lat: -29.4506, lng: 27.7351, order: 2 },
+    { name: 'Science Block', lat: -29.4515, lng: 27.7368, order: 3 },
+    { name: 'Student Residences', lat: -29.4528, lng: 27.7380, order: 4 },
+    { name: 'Sports Complex', lat: -29.4510, lng: 27.7395, order: 5 },
+    { name: 'Main Gate', lat: -29.4499, lng: 27.7333, order: 6 },
+  ];
+  const townStops = [
+    { name: 'Campus Main Gate', lat: -29.4499, lng: 27.7333, order: 1 },
+    { name: 'Roma Taxi Rank', lat: -29.4465, lng: 27.7290, order: 2 },
+    { name: 'Roma Market', lat: -29.4438, lng: 27.7255, order: 3 },
+    { name: 'Campus Main Gate', lat: -29.4499, lng: 27.7333, order: 4 },
+  ];
+  const routeSeeds = [
+    {
+      routeNumber: 'C1',
+      routeName: 'Campus Loop',
+      startLocation: 'Main Gate',
+      endLocation: 'Main Gate',
+      stops: campusStops,
+      schedule: { weekdays: ['07:00', '07:30', '08:00', '12:00', '13:00', '17:00'], weekends: ['09:00', '15:00'] },
+      vehicleType: 'Minibus',
+      capacity: 22,
+      fare: 0,
+    },
+    {
+      routeNumber: 'T1',
+      routeName: 'Campus ↔ Roma Town',
+      startLocation: 'Campus Main Gate',
+      endLocation: 'Roma Market',
+      stops: townStops,
+      schedule: { weekdays: ['07:15', '08:15', '12:30', '16:30', '18:00'], weekends: [] },
+      vehicleType: 'Bus',
+      capacity: 45,
+      fare: 8,
+    },
+    {
+      routeNumber: 'R1',
+      routeName: 'Residence Express',
+      startLocation: 'Student Residences',
+      endLocation: 'Academic Block',
+      stops: [
+        { name: 'Student Residences', lat: -29.4528, lng: 27.7380, order: 1 },
+        { name: 'Cafeteria', lat: -29.4512, lng: 27.7360, order: 2 },
+        { name: 'Academic Block', lat: -29.4502, lng: 27.7348, order: 3 },
+        { name: 'Student Residences', lat: -29.4528, lng: 27.7380, order: 4 },
+      ],
+      schedule: { weekdays: ['07:00', '07:20', '07:40', '08:00', '13:00'], weekends: [] },
+      vehicleType: 'Shuttle',
+      capacity: 14,
+      fare: 0,
+    },
+  ];
+
+  let routesCreated = 0;
+  for (const r of routeSeeds) {
+    const exists = await transportRepo.findOne({
+      where: { universityId: primaryUniId, routeNumber: r.routeNumber },
+    });
+    if (exists) continue;
+    await transportRepo.save(
+      transportRepo.create({
+        universityId: primaryUniId,
+        routeName: r.routeName,
+        routeNumber: r.routeNumber,
+        startLocation: r.startLocation,
+        endLocation: r.endLocation,
+        stops: r.stops,
+        schedule: r.schedule,
+        vehicleType: r.vehicleType,
+        capacity: r.capacity,
+        fare: r.fare as any,
+        isActive: true,
+        currentLat: r.stops[0].lat as any,
+        currentLng: r.stops[0].lng as any,
+        lastUpdated: new Date(),
+      }),
+    );
+    routesCreated++;
+  }
+  console.log(`  ✅ Transport routes seeded (${routesCreated} routes)`);
 
   console.log('🎉 Seed complete!');
   console.log('\nDemo credentials:');

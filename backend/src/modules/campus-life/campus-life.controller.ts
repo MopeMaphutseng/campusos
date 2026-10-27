@@ -9,6 +9,7 @@ import { UserId, UniversityId } from '../../common/decorators/auth.decorators';
 import { TenantGuard } from '../../common/guards/tenant.guard';
 import { MapLocationType } from './entities/campus-map.entity';
 import { CafeteriaOrderStatus } from './entities/cafeteria-order.entity';
+import { MealType } from './entities/cafeteria-menu.entity';
 import { TargetedType } from '../targeting/targeted-type.decorator';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { ClubCategory } from './entities/club.entity';
@@ -94,6 +95,63 @@ export class CampusLifeController {
     @Body('status') status: CafeteriaOrderStatus,
   ) {
     return this.campusLifeService.updateOrderStatus(universityId, id, status);
+  }
+
+  // --- Cafeteria daily menu ---
+
+  @Get('cafeteria/menu')
+  @ApiOperation({ summary: 'Get the cafeteria menu for a day (defaults to today)' })
+  @ApiQuery({ name: 'date', required: false, type: String, description: 'YYYY-MM-DD' })
+  @ApiQuery({ name: 'mealType', required: false, enum: MealType })
+  @ApiQuery({ name: 'shopId', required: false, type: String })
+  async findDailyMenu(
+    @UniversityId() universityId: string,
+    @Query('date') date?: string,
+    @Query('mealType') mealType?: MealType,
+    @Query('shopId') shopId?: string,
+  ) {
+    return this.campusLifeService.findDailyMenu(universityId, date, mealType, shopId);
+  }
+
+  @Get('cafeteria/menu/week')
+  @ApiOperation({ summary: 'Get the cafeteria menu for the coming week' })
+  @ApiQuery({ name: 'startDate', required: false, type: String, description: 'YYYY-MM-DD' })
+  async findWeeklyMenu(
+    @UniversityId() universityId: string,
+    @Query('startDate') startDate?: string,
+  ) {
+    return this.campusLifeService.findWeeklyMenu(universityId, startDate);
+  }
+
+  @Post('cafeteria/menu')
+  @ApiOperation({ summary: 'Create a cafeteria menu item' })
+  async createMenuItem(
+    @UniversityId() universityId: string,
+    @Body() body: any,
+  ) {
+    return this.campusLifeService.createMenuItem(universityId, body);
+  }
+
+  @Patch('cafeteria/menu/:id')
+  @ApiOperation({ summary: 'Update a cafeteria menu item' })
+  @ApiParam({ name: 'id', type: String })
+  async updateMenuItem(
+    @UniversityId() universityId: string,
+    @Param('id') id: string,
+    @Body() body: any,
+  ) {
+    return this.campusLifeService.updateMenuItem(universityId, id, body);
+  }
+
+  @Delete('cafeteria/menu/:id')
+  @ApiOperation({ summary: 'Delete a cafeteria menu item' })
+  @ApiParam({ name: 'id', type: String })
+  async deleteMenuItem(
+    @UniversityId() universityId: string,
+    @Param('id') id: string,
+  ) {
+    await this.campusLifeService.deleteMenuItem(universityId, id);
+    return { success: true };
   }
 
   // --- Hostels ---
@@ -217,6 +275,16 @@ export class CampusLifeController {
     @Query() query: PaginationDto,
   ) {
     return this.campusLifeService.findTransportRoutes(universityId, query);
+  }
+
+  @Get('transport/:id/live')
+  @ApiOperation({ summary: 'Get live shuttle position and stop ETAs for a route' })
+  @ApiParam({ name: 'id', type: String })
+  async getTransportLive(
+    @UniversityId() universityId: string,
+    @Param('id') id: string,
+  ) {
+    return this.campusLifeService.getTransportLive(universityId, id);
   }
 
   @Get('transport/:id')

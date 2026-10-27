@@ -111,7 +111,7 @@ export class PaymentsService {
     }
   }
 
-  private audit(operation: string, data: AuditLogEntry): void {
+  private audit(operation: string, data: Partial<AuditLogEntry> & { universityId: string }): void {
     const entry: AuditLogEntry = {
       timestamp: new Date().toISOString(),
       operation,
@@ -646,8 +646,7 @@ export class PaymentsService {
       },
     });
 
-    const manager = queryRunner ? queryRunner.manager : this.escrowRepo;
-    const saved = await manager.save(escrow);
+    const saved = queryRunner ? await queryRunner.manager.save(escrow) : await this.escrowRepo.save(escrow);
 
     this.audit('ESCROW_CREATED', {
       universityId: transaction.universityId,
@@ -702,8 +701,11 @@ export class PaymentsService {
     escrow.status = EscrowStatus.REFUNDED;
     escrow.refundedAt = new Date();
 
-    const manager = queryRunner ? queryRunner.manager : this.escrowRepo;
-    await manager.save(escrow);
+    if (queryRunner) {
+      await queryRunner.manager.save(escrow);
+    } else {
+      await this.escrowRepo.save(escrow);
+    }
 
     this.audit('ESCROW_REFUNDED', {
       universityId: transaction.universityId,

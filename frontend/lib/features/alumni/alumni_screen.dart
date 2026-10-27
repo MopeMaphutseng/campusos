@@ -16,19 +16,19 @@ class _AlumniScreenState extends ConsumerState<AlumniScreen> with SingleTickerPr
   String _search = '';
 
   final _alumni = [
-    _AlumniData('Dr. Mpho Tsepo', 2015, 'PhD Computer Science', 'Google', 'Senior ML Engineer', 'Technology', LucideIcons.code),
-    _AlumniData('Lineo Mokoena', 2018, 'BCom Accounting', 'Deloitte', 'Audit Manager', 'Finance', LucideIcons.briefcase),
-    _AlumniData('Karabo Moeketsi', 2019, 'LLB Law', 'Webber Wentzel', 'Associate Attorney', 'Legal', LucideIcons.scale),
-    _AlumniData('Thabo Letsie', 2016, 'MEng Civil Engineering', 'Arup', 'Structural Engineer', 'Engineering', LucideIcons.hardHat),
-    _AlumniData('Mosa Nkosi', 2020, 'BSc Computer Science', 'Standard Bank', 'Software Developer', 'Technology', LucideIcons.monitor),
-    _AlumniData('Nthabiseng Radebe', 2017, 'MBA', 'Vodacom', 'Product Manager', 'Business', LucideIcons.trendingUp),
+    const _AlumniData('Dr. Mpho Tsepo', 2015, 'PhD Computer Science', 'Google', 'Senior ML Engineer', 'Technology', LucideIcons.code),
+    const _AlumniData('Lineo Mokoena', 2018, 'BCom Accounting', 'Deloitte', 'Audit Manager', 'Finance', LucideIcons.briefcase),
+    const _AlumniData('Karabo Moeketsi', 2019, 'LLB Law', 'Webber Wentzel', 'Associate Attorney', 'Legal', LucideIcons.scale),
+    const _AlumniData('Thabo Letsie', 2016, 'MEng Civil Engineering', 'Arup', 'Structural Engineer', 'Engineering', LucideIcons.hardHat),
+    const _AlumniData('Mosa Nkosi', 2020, 'BSc Computer Science', 'Standard Bank', 'Software Developer', 'Technology', LucideIcons.monitor),
+    const _AlumniData('Nthabiseng Radebe', 2017, 'MBA', 'Vodacom', 'Product Manager', 'Business', LucideIcons.trendingUp),
   ];
 
   final _mentors = [
-    _MentorData('Dr. Mpho Tsepo', 'Senior ML Engineer at Google', ['AI/ML', 'Data Science', 'Career Coaching'], 4.8, 24, true),
-    _MentorData('Lineo Mokoena', 'Audit Manager at Deloitte', ['Finance', 'Accounting', 'Audit'], 4.6, 18, true),
-    _MentorData('Thabo Letsie', 'Structural Engineer at Arup', ['Engineering', 'Project Management'], 4.7, 12, false),
-    _MentorData('Nthabiseng Radebe', 'Product Manager at Vodacom', ['Product Management', 'Business Strategy'], 4.9, 31, true),
+    const _MentorData('Dr. Mpho Tsepo', 'Senior ML Engineer at Google', ['AI/ML', 'Data Science', 'Career Coaching'], 4.8, 24, true),
+    const _MentorData('Lineo Mokoena', 'Audit Manager at Deloitte', ['Finance', 'Accounting', 'Audit'], 4.6, 18, true),
+    const _MentorData('Thabo Letsie', 'Structural Engineer at Arup', ['Engineering', 'Project Management'], 4.7, 12, false),
+    const _MentorData('Nthabiseng Radebe', 'Product Manager at Vodacom', ['Product Management', 'Business Strategy'], 4.9, 31, true),
   ];
 
   @override
@@ -139,7 +139,7 @@ class _AlumniScreenState extends ConsumerState<AlumniScreen> with SingleTickerPr
   }
 
   Widget _buildAlumniGrid(List<_AlumniData> list, bool isDark) {
-    if (list.isEmpty) return Center(child: EmptyState(icon: LucideIcons.userX, title: 'No alumni found', message: 'Try a different search'));
+    if (list.isEmpty) return const Center(child: EmptyState(icon: LucideIcons.userX, title: 'No alumni found', message: 'Try a different search'));
     return GridView.builder(
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
@@ -168,7 +168,7 @@ class _AlumniScreenState extends ConsumerState<AlumniScreen> with SingleTickerPr
   }
 
   Widget _buildMentorList(List<_MentorData> list, bool isDark) {
-    if (list.isEmpty) return Center(child: EmptyState(icon: LucideIcons.userX, title: 'No mentors found', message: 'Try a different search'));
+    if (list.isEmpty) return const Center(child: EmptyState(icon: LucideIcons.userX, title: 'No mentors found', message: 'Try a different search'));
     return ListView.builder(
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16),

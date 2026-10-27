@@ -74,7 +74,7 @@ class OpportunityCard extends StatelessWidget {
               ],
             ),
           ),
-          Icon(
+          const Icon(
             LucideIcons.chevronRight,
             size: 20,
           ),

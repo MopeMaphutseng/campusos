@@ -4,12 +4,6 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
   name = 'CreateRemainingModuleTables1700000000004';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Drop stub tables from migration 3 that don't match entity schemas
-    await queryRunner.query(`DROP TABLE IF EXISTS "notifications" CASCADE`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "messages" CASCADE`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "conversations" CASCADE`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "credentials" CASCADE`);
-
     // Create enum types
     await queryRunner.query(`
       DO $$ BEGIN
@@ -137,7 +131,7 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
       -- ============================================
       -- CLUBS
       -- ============================================
-      CREATE TABLE "clubs" (
+      CREATE TABLE IF NOT EXISTS "clubs" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "name" VARCHAR(255) NOT NULL,
@@ -154,13 +148,13 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "deleted_at" TIMESTAMPTZ
       );
-      CREATE INDEX "idx_clubs_university_category" ON "clubs" ("university_id", "category");
-      CREATE INDEX "idx_clubs_university_active" ON "clubs" ("university_id", "is_active");
+      CREATE INDEX IF NOT EXISTS "idx_clubs_university_category" ON "clubs" ("university_id", "category");
+      CREATE INDEX IF NOT EXISTS "idx_clubs_university_active" ON "clubs" ("university_id", "is_active");
 
       -- ============================================
       -- TRANSPORT ROUTES
       -- ============================================
-      CREATE TABLE "transport_routes" (
+      CREATE TABLE IF NOT EXISTS "transport_routes" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "route_name" VARCHAR(255) NOT NULL,
@@ -180,12 +174,12 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "deleted_at" TIMESTAMPTZ
       );
-      CREATE INDEX "idx_transport_university_active" ON "transport_routes" ("university_id", "is_active");
+      CREATE INDEX IF NOT EXISTS "idx_transport_university_active" ON "transport_routes" ("university_id", "is_active");
 
       -- ============================================
       -- PRINT SERVICES
       -- ============================================
-      CREATE TABLE "print_services" (
+      CREATE TABLE IF NOT EXISTS "print_services" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "shop_name" VARCHAR(255) NOT NULL,
@@ -201,12 +195,12 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "deleted_at" TIMESTAMPTZ
       );
-      CREATE INDEX "idx_print_university_active" ON "print_services" ("university_id", "is_active");
+      CREATE INDEX IF NOT EXISTS "idx_print_university_active" ON "print_services" ("university_id", "is_active");
 
       -- ============================================
       -- CAMPUS MAP LOCATIONS
       -- ============================================
-      CREATE TABLE "campus_map_locations" (
+      CREATE TABLE IF NOT EXISTS "campus_map_locations" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "name" VARCHAR(255) NOT NULL,
@@ -227,12 +221,12 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "deleted_at" TIMESTAMPTZ
       );
-      CREATE INDEX "idx_campus_map_university_type" ON "campus_map_locations" ("university_id", "type");
+      CREATE INDEX IF NOT EXISTS "idx_campus_map_university_type" ON "campus_map_locations" ("university_id", "type");
 
       -- ============================================
       -- CAFETERIA ORDERS
       -- ============================================
-      CREATE TABLE "cafeteria_orders" (
+      CREATE TABLE IF NOT EXISTS "cafeteria_orders" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "user_id" UUID NOT NULL REFERENCES "users"("id"),
@@ -252,13 +246,13 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "deleted_at" TIMESTAMPTZ
       );
-      CREATE INDEX "idx_cafeteria_university_user" ON "cafeteria_orders" ("university_id", "user_id");
-      CREATE INDEX "idx_cafeteria_university_status" ON "cafeteria_orders" ("university_id", "status");
+      CREATE INDEX IF NOT EXISTS "idx_cafeteria_university_user" ON "cafeteria_orders" ("university_id", "user_id");
+      CREATE INDEX IF NOT EXISTS "idx_cafeteria_university_status" ON "cafeteria_orders" ("university_id", "status");
 
       -- ============================================
       -- HOSTELS
       -- ============================================
-      CREATE TABLE "hostels" (
+      CREATE TABLE IF NOT EXISTS "hostels" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "name" VARCHAR(255) NOT NULL,
@@ -282,12 +276,12 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "deleted_at" TIMESTAMPTZ
       );
-      CREATE INDEX "idx_hostels_university_status" ON "hostels" ("university_id", "status");
+      CREATE INDEX IF NOT EXISTS "idx_hostels_university_status" ON "hostels" ("university_id", "status");
 
       -- ============================================
       -- ALUMNI PROFILES
       -- ============================================
-      CREATE TABLE "alumni_profiles" (
+      CREATE TABLE IF NOT EXISTS "alumni_profiles" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "user_id" UUID NOT NULL REFERENCES "users"("id"),
@@ -312,14 +306,14 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
         "deleted_at" TIMESTAMPTZ,
         UNIQUE ("university_id", "user_id")
       );
-      CREATE INDEX "idx_alumni_university_industry" ON "alumni_profiles" ("university_id", "industry");
-      CREATE INDEX "idx_alumni_university_graduation" ON "alumni_profiles" ("university_id", "graduation_year");
-      CREATE INDEX "idx_alumni_university_mentor" ON "alumni_profiles" ("university_id", "is_mentor");
+      CREATE INDEX IF NOT EXISTS "idx_alumni_university_industry" ON "alumni_profiles" ("university_id", "industry");
+      CREATE INDEX IF NOT EXISTS "idx_alumni_university_graduation" ON "alumni_profiles" ("university_id", "graduation_year");
+      CREATE INDEX IF NOT EXISTS "idx_alumni_university_mentor" ON "alumni_profiles" ("university_id", "is_mentor");
 
       -- ============================================
       -- NEWS ARTICLES
       -- ============================================
-      CREATE TABLE "news_articles" (
+      CREATE TABLE IF NOT EXISTS "news_articles" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "title" VARCHAR(255) NOT NULL,
@@ -337,14 +331,14 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "deleted_at" TIMESTAMPTZ
       );
-      CREATE INDEX "idx_news_university_category" ON "news_articles" ("university_id", "category");
-      CREATE INDEX "idx_news_university_published" ON "news_articles" ("university_id", "is_published");
-      CREATE INDEX "idx_news_university_published_at" ON "news_articles" ("university_id", "published_at");
+      CREATE INDEX IF NOT EXISTS "idx_news_university_category" ON "news_articles" ("university_id", "category");
+      CREATE INDEX IF NOT EXISTS "idx_news_university_published" ON "news_articles" ("university_id", "is_published");
+      CREATE INDEX IF NOT EXISTS "idx_news_university_published_at" ON "news_articles" ("university_id", "published_at");
 
       -- ============================================
       -- STARTUP HUB ENTRIES
       -- ============================================
-      CREATE TABLE "startup_hub_entries" (
+      CREATE TABLE IF NOT EXISTS "startup_hub_entries" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "name" VARCHAR(255) NOT NULL,
@@ -362,13 +356,13 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "deleted_at" TIMESTAMPTZ
       );
-      CREATE INDEX "idx_startup_university_stage" ON "startup_hub_entries" ("university_id", "stage");
-      CREATE INDEX "idx_startup_university_category" ON "startup_hub_entries" ("university_id", "category");
+      CREATE INDEX IF NOT EXISTS "idx_startup_university_stage" ON "startup_hub_entries" ("university_id", "stage");
+      CREATE INDEX IF NOT EXISTS "idx_startup_university_category" ON "startup_hub_entries" ("university_id", "category");
 
       -- ============================================
       -- MENTOR PROFILES
       -- ============================================
-      CREATE TABLE "mentor_profiles" (
+      CREATE TABLE IF NOT EXISTS "mentor_profiles" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "user_id" UUID NOT NULL REFERENCES "users"("id"),
@@ -388,12 +382,12 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
         "deleted_at" TIMESTAMPTZ,
         UNIQUE ("university_id", "user_id")
       );
-      CREATE INDEX "idx_mentor_university_status" ON "mentor_profiles" ("university_id", "status");
+      CREATE INDEX IF NOT EXISTS "idx_mentor_university_status" ON "mentor_profiles" ("university_id", "status");
 
       -- ============================================
       -- MENTORSHIP BOOKINGS
       -- ============================================
-      CREATE TABLE "mentorship_bookings" (
+      CREATE TABLE IF NOT EXISTS "mentorship_bookings" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "mentor_id" UUID NOT NULL REFERENCES "users"("id"),
@@ -413,14 +407,14 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "deleted_at" TIMESTAMPTZ
       );
-      CREATE INDEX "idx_booking_university_mentor" ON "mentorship_bookings" ("university_id", "mentor_id");
-      CREATE INDEX "idx_booking_university_mentee" ON "mentorship_bookings" ("university_id", "mentee_id");
-      CREATE INDEX "idx_booking_university_status" ON "mentorship_bookings" ("university_id", "status");
+      CREATE INDEX IF NOT EXISTS "idx_booking_university_mentor" ON "mentorship_bookings" ("university_id", "mentor_id");
+      CREATE INDEX IF NOT EXISTS "idx_booking_university_mentee" ON "mentorship_bookings" ("university_id", "mentee_id");
+      CREATE INDEX IF NOT EXISTS "idx_booking_university_status" ON "mentorship_bookings" ("university_id", "status");
 
       -- ============================================
       -- SPORTS MATCHES
       -- ============================================
-      CREATE TABLE "sports_matches" (
+      CREATE TABLE IF NOT EXISTS "sports_matches" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "sport" "sport_type_enum" NOT NULL,
@@ -445,14 +439,14 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "deleted_at" TIMESTAMPTZ
       );
-      CREATE INDEX "idx_sports_university_status" ON "sports_matches" ("university_id", "status");
-      CREATE INDEX "idx_sports_university_sport" ON "sports_matches" ("university_id", "sport");
-      CREATE INDEX "idx_sports_university_scheduled" ON "sports_matches" ("university_id", "scheduled_at");
+      CREATE INDEX IF NOT EXISTS "idx_sports_university_status" ON "sports_matches" ("university_id", "status");
+      CREATE INDEX IF NOT EXISTS "idx_sports_university_sport" ON "sports_matches" ("university_id", "sport");
+      CREATE INDEX IF NOT EXISTS "idx_sports_university_scheduled" ON "sports_matches" ("university_id", "scheduled_at");
 
       -- ============================================
       -- LIBRARY CATEGORIES
       -- ============================================
-      CREATE TABLE "library_categories" (
+      CREATE TABLE IF NOT EXISTS "library_categories" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "name" VARCHAR(255) NOT NULL,
@@ -470,7 +464,7 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
       -- ============================================
       -- LIBRARY ITEMS
       -- ============================================
-      CREATE TABLE "library_items" (
+      CREATE TABLE IF NOT EXISTS "library_items" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "title" VARCHAR(255) NOT NULL,
@@ -497,14 +491,14 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "deleted_at" TIMESTAMPTZ
       );
-      CREATE INDEX "idx_library_university_course" ON "library_items" ("university_id", "course_id");
-      CREATE INDEX "idx_library_university_faculty" ON "library_items" ("university_id", "faculty");
-      CREATE INDEX "idx_library_university_topic" ON "library_items" ("university_id", "topic") WHERE "topic" IS NOT NULL;
+      CREATE INDEX IF NOT EXISTS "idx_library_university_course" ON "library_items" ("university_id", "course_id");
+      CREATE INDEX IF NOT EXISTS "idx_library_university_faculty" ON "library_items" ("university_id", "faculty");
+      CREATE INDEX IF NOT EXISTS "idx_library_university_topic" ON "library_items" ("university_id", "topic") WHERE "topic" IS NOT NULL;
 
       -- ============================================
       -- ESCROW HOLDINGS
       -- ============================================
-      CREATE TABLE "escrow_holdings" (
+      CREATE TABLE IF NOT EXISTS "escrow_holdings" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "transaction_id" UUID NOT NULL,
@@ -526,15 +520,15 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
         "deleted_at" TIMESTAMPTZ,
         UNIQUE ("university_id", "transaction_id")
       );
-      CREATE INDEX "idx_escrow_university_status" ON "escrow_holdings" ("university_id", "status");
-      CREATE INDEX "idx_escrow_university_buyer" ON "escrow_holdings" ("university_id", "buyer_id");
-      CREATE INDEX "idx_escrow_university_seller" ON "escrow_holdings" ("university_id", "seller_id");
-      CREATE INDEX "idx_escrow_university_expires" ON "escrow_holdings" ("university_id", "expires_at");
+      CREATE INDEX IF NOT EXISTS "idx_escrow_university_status" ON "escrow_holdings" ("university_id", "status");
+      CREATE INDEX IF NOT EXISTS "idx_escrow_university_buyer" ON "escrow_holdings" ("university_id", "buyer_id");
+      CREATE INDEX IF NOT EXISTS "idx_escrow_university_seller" ON "escrow_holdings" ("university_id", "seller_id");
+      CREATE INDEX IF NOT EXISTS "idx_escrow_university_expires" ON "escrow_holdings" ("university_id", "expires_at");
 
       -- ============================================
       -- CONVERSATIONS (recreated with full schema)
       -- ============================================
-      CREATE TABLE "conversations" (
+      CREATE TABLE IF NOT EXISTS "conversations" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "type" "conversation_type_enum" NOT NULL DEFAULT 'direct',
@@ -549,12 +543,12 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "deleted_at" TIMESTAMPTZ
       );
-      CREATE INDEX "idx_conversations_university_type" ON "conversations" ("university_id", "type");
+      CREATE INDEX IF NOT EXISTS "idx_conversations_university_type" ON "conversations" ("university_id", "type");
 
       -- ============================================
       -- MESSAGES (recreated with full schema)
       -- ============================================
-      CREATE TABLE "messages" (
+      CREATE TABLE IF NOT EXISTS "messages" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "conversation_id" UUID NOT NULL REFERENCES "conversations"("id"),
@@ -574,14 +568,14 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "deleted_at" TIMESTAMPTZ
       );
-      CREATE INDEX "idx_messages_university_conversation" ON "messages" ("university_id", "conversation_id");
-      CREATE INDEX "idx_messages_university_sender" ON "messages" ("university_id", "sender_id");
-      CREATE INDEX "idx_messages_university_conv_created" ON "messages" ("university_id", "conversation_id", "created_at");
+      CREATE INDEX IF NOT EXISTS "idx_messages_university_conversation" ON "messages" ("university_id", "conversation_id");
+      CREATE INDEX IF NOT EXISTS "idx_messages_university_sender" ON "messages" ("university_id", "sender_id");
+      CREATE INDEX IF NOT EXISTS "idx_messages_university_conv_created" ON "messages" ("university_id", "conversation_id", "created_at");
 
       -- ============================================
       -- NOTIFICATIONS (recreated with full schema)
       -- ============================================
-      CREATE TABLE "notifications" (
+      CREATE TABLE IF NOT EXISTS "notifications" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "user_id" UUID NOT NULL REFERENCES "users"("id"),
@@ -604,14 +598,14 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "deleted_at" TIMESTAMPTZ
       );
-      CREATE INDEX "idx_notifications_university_user" ON "notifications" ("university_id", "user_id");
-      CREATE INDEX "idx_notifications_university_user_read" ON "notifications" ("university_id", "user_id", "read_at");
-      CREATE INDEX "idx_notifications_university_type" ON "notifications" ("university_id", "type");
+      CREATE INDEX IF NOT EXISTS "idx_notifications_university_user" ON "notifications" ("university_id", "user_id");
+      CREATE INDEX IF NOT EXISTS "idx_notifications_university_user_read" ON "notifications" ("university_id", "user_id", "read_at");
+      CREATE INDEX IF NOT EXISTS "idx_notifications_university_type" ON "notifications" ("university_id", "type");
 
       -- ============================================
       -- VERIFIABLE CREDENTIALS (recreated with full schema)
       -- ============================================
-      CREATE TABLE "verifiable_credentials" (
+      CREATE TABLE IF NOT EXISTS "verifiable_credentials" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID REFERENCES "universities"("id"),
         "holder_id" UUID NOT NULL REFERENCES "users"("id"),
@@ -635,9 +629,9 @@ export class CreateRemainingModuleTables1700000000004 implements MigrationInterf
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "deleted_at" TIMESTAMPTZ
       );
-      CREATE INDEX "idx_vc_university_holder" ON "verifiable_credentials" ("university_id", "holder_id");
-      CREATE INDEX "idx_vc_university_type" ON "verifiable_credentials" ("university_id", "type");
-      CREATE INDEX "idx_vc_university_status" ON "verifiable_credentials" ("university_id", "status");
+      CREATE INDEX IF NOT EXISTS "idx_vc_university_holder" ON "verifiable_credentials" ("university_id", "holder_id");
+      CREATE INDEX IF NOT EXISTS "idx_vc_university_type" ON "verifiable_credentials" ("university_id", "type");
+      CREATE INDEX IF NOT EXISTS "idx_vc_university_status" ON "verifiable_credentials" ("university_id", "status");
     `);
   }
 

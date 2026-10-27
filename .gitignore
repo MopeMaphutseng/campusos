@@ -31,6 +31,9 @@ frontend/.packages
 # ---- Runtime user uploads ----
 backend/uploads/
 
+# ---- Local academic archive (imported into backend/uploads) ----
+first semester/
+
 # ---- Python ----
 __pycache__/
 *.pyc

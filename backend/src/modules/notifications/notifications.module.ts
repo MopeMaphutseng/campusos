@@ -4,11 +4,12 @@ import { ConfigModule } from '@nestjs/config';
 import { NotificationsController } from './notifications.controller';
 import { NotificationsService } from './notifications.service';
 import { Notification } from './entities/notification.entity';
+import { DeviceToken } from './entities/device-token.entity';
 import { FcmProvider } from './services/fcm-provider';
 import { ApnsProvider } from './services/apns-provider';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Notification]), ConfigModule],
+  imports: [TypeOrmModule.forFeature([Notification, DeviceToken]), ConfigModule],
   controllers: [NotificationsController],
   providers: [NotificationsService, FcmProvider, ApnsProvider],
   exports: [NotificationsService, FcmProvider, ApnsProvider],

@@ -63,16 +63,16 @@ class PaymentsScreen extends ConsumerWidget {
             ),
             SliverToBoxAdapter(child: _buildBalanceHero(context)),
             SliverToBoxAdapter(child: _buildQuickPayButtons(context, isDark)),
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+                padding: EdgeInsets.fromLTRB(16, 20, 16, 4),
                 child: SectionHeader(title: 'Upcoming Payments'),
               ),
             ),
             SliverToBoxAdapter(child: _buildUpcomingPayments(context, isDark)),
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+                padding: EdgeInsets.fromLTRB(16, 20, 16, 4),
                 child: SectionHeader(title: 'Financial Aid'),
               ),
             ),
@@ -141,9 +141,9 @@ class PaymentsScreen extends ConsumerWidget {
                 childCount: _transactions.length,
               ),
             ),
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+                padding: EdgeInsets.fromLTRB(16, 20, 16, 4),
                 child: SectionHeader(title: 'Payment Methods'),
               ),
             ),
@@ -254,11 +254,11 @@ class PaymentsScreen extends ConsumerWidget {
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              Row(
+                              const Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text('Payment Method'),
-                                  const Text('M-Pesa'),
+                                  Text('Payment Method'),
+                                  Text('M-Pesa'),
                                 ],
                               ),
                             ],
@@ -441,7 +441,7 @@ class PaymentsScreen extends ConsumerWidget {
             title: Text('M-Pesa', style: Theme.of(context).textTheme.bodyMedium),
             subtitle: Text('+266 5700 1234', style: Theme.of(context).textTheme.bodySmall),
             trailing: StatusBadge.success('Primary'),
-            onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Coming soon'), duration: Duration(seconds: 1))),
+            onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coming soon'), duration: Duration(seconds: 1))),
           ),
           const Divider(height: 1, indent: 60),
           ListTile(
@@ -457,14 +457,14 @@ class PaymentsScreen extends ConsumerWidget {
             title: Text('Add Card', style: Theme.of(context).textTheme.bodyMedium),
             subtitle: Text('Visa, Mastercard accepted', style: Theme.of(context).textTheme.bodySmall),
             trailing: const Icon(LucideIcons.plus, size: 18),
-            onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Coming soon'), duration: Duration(seconds: 1))),
+            onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coming soon'), duration: Duration(seconds: 1))),
           ),
         ],
       ),
     );
   }
 
-  static final _upcomingPayments = const [
+  static const _upcomingPayments = [
     _UpcomingPayment(
       title: 'Tuition Fees - Semester 2',
       dueDate: '15 Aug 2026',
@@ -494,7 +494,7 @@ class PaymentsScreen extends ConsumerWidget {
     ),
   ];
 
-  static final _transactions = const [
+  static const _transactions = [
     _TransactionData(
       date: '22 Jul 2026',
       description: 'Tuition Fees - Semester 1',

@@ -5,7 +5,7 @@ export class CreateAcademicModule1700000000002 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-      CREATE TABLE "courses" (
+      CREATE TABLE IF NOT EXISTS "courses" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "code" VARCHAR(20) NOT NULL,
@@ -27,9 +27,9 @@ export class CreateAcademicModule1700000000002 implements MigrationInterface {
         "deleted_at" TIMESTAMPTZ,
         UNIQUE ("university_id", "code")
       );
-      CREATE INDEX "idx_courses_university" ON "courses" ("university_id");
+      CREATE INDEX IF NOT EXISTS "idx_courses_university" ON "courses" ("university_id");
 
-      CREATE TABLE "enrollments" (
+      CREATE TABLE IF NOT EXISTS "enrollments" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "user_id" UUID NOT NULL REFERENCES "users"("id"),
@@ -44,7 +44,7 @@ export class CreateAcademicModule1700000000002 implements MigrationInterface {
         UNIQUE ("university_id", "user_id", "course_id")
       );
 
-      CREATE TABLE "timetable_entries" (
+      CREATE TABLE IF NOT EXISTS "timetable_entries" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "university_id" UUID NOT NULL REFERENCES "universities"("id"),
         "course_id" UUID NOT NULL REFERENCES "courses"("id"),

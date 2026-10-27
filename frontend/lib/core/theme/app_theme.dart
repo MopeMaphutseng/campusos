@@ -13,7 +13,7 @@ class AppTheme {
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.backgroundLight,
       textTheme: textTheme,
-      colorScheme: ColorScheme.light(
+      colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         onPrimary: Colors.white,
         secondary: AppColors.primaryAccent,
@@ -148,7 +148,7 @@ class AppTheme {
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.canvasDark,
       textTheme: textTheme,
-      colorScheme: ColorScheme.dark(
+      colorScheme: const ColorScheme.dark(
         primary: AppColors.primaryAccent,
         onPrimary: Colors.white,
         secondary: AppColors.secondaryAccent,

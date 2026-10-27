@@ -78,4 +78,7 @@ export class VerifiableCredential extends BaseEntity {
 
   @Column({ type: 'text', nullable: true, name: 'qr_code_data' })
   qrCodeData: string;
+
+  @Column({ type: 'text', nullable: true, name: 'revoked_at' })
+  revokedAt?: string;
 }

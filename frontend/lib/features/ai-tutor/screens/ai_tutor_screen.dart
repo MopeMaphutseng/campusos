@@ -9,7 +9,6 @@ import 'package:campusos/core/services/api_service.dart';
 import 'package:campusos/core/services/tutor_stream.dart';
 import 'package:campusos/core/services/tutor_stream_event.dart';
 import 'package:campusos/core/theme/app_colors.dart';
-import 'package:campusos/core/widgets/widgets.dart';
 
 class AiTutorScreen extends ConsumerStatefulWidget {
   const AiTutorScreen({super.key});
@@ -300,7 +299,7 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
             ),
             child: Row(
               children: [
-                Icon(LucideIcons.shield, size: 14, color: AppColors.textSecondary),
+                const Icon(LucideIcons.shield, size: 14, color: AppColors.textSecondary),
                 const SizedBox(width: 6),
                 Text('Integrity Mode:', style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11)),
                 const SizedBox(width: 8),
@@ -331,11 +330,11 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                     color: AppColors.info.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Row(
+                  child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(LucideIcons.brain, size: 10, color: AppColors.info),
-                      const SizedBox(width: 3),
+                      SizedBox(width: 3),
                       Text('AI', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.info)),
                     ],
                   ),
@@ -386,14 +385,14 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
           children: [
             Text(
               _selectedCourse?.split(' – ').first ?? 'Select Course',
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppColors.primaryAccent,
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(width: 4),
-            Icon(LucideIcons.chevronDown, size: 12, color: AppColors.primaryAccent),
+            const Icon(LucideIcons.chevronDown, size: 12, color: AppColors.primaryAccent),
           ],
         ),
       ),
@@ -569,8 +568,8 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
           const SnackBar(content: Text('Copied to clipboard'), duration: Duration(seconds: 1)),
         );
       },
-      child: Padding(
-        padding: const EdgeInsets.all(4),
+      child: const Padding(
+        padding: EdgeInsets.all(4),
         child: Icon(LucideIcons.copy, size: 13, color: AppColors.textSecondary),
       ),
     );

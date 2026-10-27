@@ -14,6 +14,7 @@ import 'package:campusos/features/dashboard/widgets/weather_widget.dart';
 import 'package:campusos/features/dashboard/widgets/deadline_countdown_card.dart';
 import 'package:campusos/features/dashboard/widgets/moments_showcase_card.dart';
 import 'package:campusos/features/notifications/screens/notifications_screen.dart';
+import 'package:campusos/features/notifications/providers/notifications_provider.dart';
 import 'package:campusos/features/profile/screens/profile_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -64,10 +65,12 @@ class DashboardScreen extends ConsumerWidget {
                   ],
                 ),
                 actions: [
-                  CampusIconButton(
-                    icon: LucideIcons.bell,
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())),
-                    tooltip: 'Notifications',
+                  _NotificationBell(
+                    onTap: () async {
+                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+                      ref.invalidate(notificationsProvider);
+                      ref.invalidate(unreadNotificationsCountProvider);
+                    },
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
@@ -272,6 +275,51 @@ class QuickStatsRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _NotificationBell extends ConsumerWidget {
+  final VoidCallback onTap;
+
+  const _NotificationBell({required this.onTap});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unread = ref.watch(unreadNotificationsCountProvider).asData?.value ?? 0;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        CampusIconButton(
+          icon: LucideIcons.bell,
+          onPressed: onTap,
+          tooltip: 'Notifications',
+        ),
+        if (unread > 0)
+          Positioned(
+            right: 4,
+            top: 4,
+            child: IgnorePointer(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                constraints: const BoxConstraints(minWidth: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.error,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  unread > 9 ? '9+' : '$unread',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

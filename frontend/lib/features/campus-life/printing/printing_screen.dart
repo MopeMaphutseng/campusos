@@ -264,12 +264,12 @@ class _PrintingScreenState extends ConsumerState<PrintingScreen> {
                 childCount: _shops.length,
               ),
             ),
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: SectionHeader(title: 'Recent Print Jobs'),
             ),
             SliverToBoxAdapter(
               child: _recentJobs.isEmpty
-                  ? EmptyState(
+                  ? const EmptyState(
                       icon: LucideIcons.printer,
                       title: 'No recent jobs',
                       message: 'Your print history will appear here.',
@@ -343,7 +343,7 @@ class _PrintShopCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Row(
                   children: [
-                    Icon(LucideIcons.mapPin, size: 12, color: AppColors.textSecondary),
+                    const Icon(LucideIcons.mapPin, size: 12, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
@@ -367,7 +367,7 @@ class _PrintShopCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(LucideIcons.clock, size: 14, color: AppColors.secondaryAccent),
+                    const Icon(LucideIcons.clock, size: 14, color: AppColors.secondaryAccent),
                     const SizedBox(width: 4),
                     Text(
                       shop.estimatedWait,
@@ -377,7 +377,7 @@ class _PrintShopCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Icon(LucideIcons.star, size: 14, color: AppColors.secondaryAccent),
+                    const Icon(LucideIcons.star, size: 14, color: AppColors.secondaryAccent),
                     const SizedBox(width: 4),
                     Text(
                       shop.rating.toString(),
