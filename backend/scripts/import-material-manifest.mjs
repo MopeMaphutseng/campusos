@@ -77,6 +77,25 @@ async function main() {
   await client.connect();
 
   try {
+    // Serialize concurrent boots (Render can start more than one container)
+    // and collapse duplicates left by older non-idempotent imports.
+    await client.query(
+      `SELECT pg_advisory_lock(hashtext('campusos_materials_import'))`,
+    );
+    const deduped = await client.query(`
+      DELETE FROM course_materials a
+      USING course_materials b
+      WHERE a.ctid > b.ctid
+        AND a.university_id = b.university_id
+        AND a.checksum = b.checksum
+        AND a.checksum IS NOT NULL
+        AND a.deleted_at IS NULL
+        AND b.deleted_at IS NULL
+    `);
+    if (deduped.rowCount > 0) {
+      console.log(`[materials] Removed ${deduped.rowCount} duplicate rows.`);
+    }
+
     const userResult = await client.query(
       'SELECT id FROM users WHERE university_id = $1 AND email = $2 AND deleted_at IS NULL',
       [universityId, demoEmail],
@@ -113,6 +132,56 @@ async function main() {
           continue;
         }
 
+        const values = [
+          universityId,
+          courseId,
+          material.courseCode,
+          material.title,
+          material.description,
+          material.category,
+          material.fileName,
+          material.fileUrl,
+          material.mimeType || 'application/octet-stream',
+          material.sizeBytes,
+          material.checksum,
+          uploadedBy,
+          JSON.stringify(material.metadata || {}),
+        ];
+
+        const existing = await client.query(
+          `SELECT id FROM course_materials
+           WHERE university_id = $1 AND checksum = $2 AND deleted_at IS NULL
+           LIMIT 1`,
+          [universityId, material.checksum],
+        );
+
+        if (existing.rowCount > 0) {
+          await client.query(
+            `UPDATE course_materials
+             SET course_id=$1, course_code=$2, title=$3, description=$4,
+                 category=$5, file_name=$6, file_url=$7, mime_type=$8,
+                 size_bytes=$9, uploaded_by=$10, metadata=$11::jsonb,
+                 updated_at=NOW()
+             WHERE id=$12`,
+            [
+              courseId,
+              material.courseCode,
+              material.title,
+              material.description,
+              material.category,
+              material.fileName,
+              material.fileUrl,
+              material.mimeType || 'application/octet-stream',
+              material.sizeBytes,
+              uploadedBy,
+              JSON.stringify(material.metadata || {}),
+              existing.rows[0].id,
+            ],
+          );
+          stats.existing += 1;
+          continue;
+        }
+
         const result = await client.query(
           `INSERT INTO course_materials
              (university_id, course_id, course_code, title, description, category,
@@ -120,21 +189,7 @@ async function main() {
            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13::jsonb)
            ON CONFLICT DO NOTHING
            RETURNING id`,
-          [
-            universityId,
-            courseId,
-            material.courseCode,
-            material.title,
-            material.description,
-            material.category,
-            material.fileName,
-            material.fileUrl,
-            material.mimeType || 'application/octet-stream',
-            material.sizeBytes,
-            material.checksum,
-            uploadedBy,
-            JSON.stringify(material.metadata || {}),
-          ],
+          values,
         );
 
         if (result.rowCount > 0) {
