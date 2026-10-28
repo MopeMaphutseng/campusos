@@ -16,7 +16,10 @@ class AcademicsScreen extends ConsumerStatefulWidget {
 class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  String _materialCourse = '';
+  String _materialCategory = '';
   late final Future<List<dynamic>> _enrollmentsFuture;
   late final Future<List<dynamic>> _timetableFuture;
   late final Future<List<List<dynamic>>> _academicFuture;
@@ -38,6 +41,7 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -52,6 +56,7 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
               child: TextField(
+                controller: _searchController,
                 onChanged: (v) => setState(() => _searchQuery = v),
                 decoration: InputDecoration(
                   hintText: 'Search courses, materials...',
@@ -60,7 +65,10 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
                           icon: const Icon(LucideIcons.x, size: 16),
-                          onPressed: () => setState(() => _searchQuery = ''),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
                         )
                       : null,
                 ),
@@ -1215,17 +1223,9 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
           );
         }
 
-        final all = snapshot.data ?? const [];
-        final query = _searchQuery.trim().toLowerCase();
-        final filtered = query.isEmpty
-            ? all
-            : all.where((raw) {
-                final m = Map<String, dynamic>.from(raw as Map);
-                final haystack =
-                    '${m['title'] ?? ''} ${m['courseCode'] ?? ''} ${m['category'] ?? ''} ${m['fileName'] ?? ''}'
-                        .toLowerCase();
-                return haystack.contains(query);
-              }).toList();
+        final all = (snapshot.data ?? const [])
+            .map((raw) => Map<String, dynamic>.from(raw as Map))
+            .toList();
 
         if (all.isEmpty) {
           return Center(
@@ -1239,22 +1239,81 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
             ),
           );
         }
+
+        final courseCodes = all
+            .map((m) => (m['courseCode'] ?? 'General').toString())
+            .toSet()
+            .toList()
+          ..sort();
+        final categories = all
+            .map((m) => (m['category'] ?? 'other').toString())
+            .toSet()
+            .toList()
+          ..sort((a, b) {
+            final ai = _materialCategoryOrder.indexOf(a);
+            final bi = _materialCategoryOrder.indexOf(b);
+            return (ai < 0 ? 999 : ai).compareTo(bi < 0 ? 999 : bi);
+          });
+        final query = _searchQuery.trim().toLowerCase();
+        final filtered = all.where((m) {
+          if (query.isNotEmpty) {
+            final haystack =
+                '${m['title'] ?? ''} ${m['courseCode'] ?? ''} ${m['category'] ?? ''} ${m['fileName'] ?? ''}'
+                    .toLowerCase();
+            if (!haystack.contains(query)) return false;
+          }
+          if (_materialCourse.isNotEmpty &&
+              (m['courseCode'] ?? '').toString() != _materialCourse) {
+            return false;
+          }
+          if (_materialCategory.isNotEmpty &&
+              (m['category'] ?? '').toString() != _materialCategory) {
+            return false;
+          }
+          return true;
+        }).toList();
+
+        final filters = _buildMaterialFilters(courseCodes, categories, isDark);
         if (filtered.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(
-                'No materials match "$_searchQuery".',
-                style: Theme.of(context).textTheme.bodyMedium,
-                textAlign: TextAlign.center,
+          return Column(
+            children: [
+              filters,
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'No materials match your filters.',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        TextButton.icon(
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _searchQuery = '';
+                              _materialCourse = '';
+                              _materialCategory = '';
+                            });
+                          },
+                          icon: const Icon(LucideIcons.x, size: 16),
+                          label: const Text('Clear filters'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            ),
+            ],
           );
         }
 
         final groups = <String, List<Map<String, dynamic>>>{};
-        for (final raw in filtered) {
-          final m = Map<String, dynamic>.from(raw as Map);
+        for (final m in filtered) {
           final code = (m['courseCode'] ?? 'General').toString();
           groups.putIfAbsent(code, () => []).add(m);
         }
@@ -1284,24 +1343,103 @@ class _AcademicsScreenState extends ConsumerState<AcademicsScreen>
           entries.addAll(list);
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.only(top: 4, bottom: 100),
-          physics: const BouncingScrollPhysics(),
-          itemCount: entries.length,
-          itemBuilder: (context, index) {
-            final entry = entries[index];
-            if (entry is _MaterialSection) {
-              return _buildMaterialSectionHeader(entry, isDark);
-            }
-            final material = entry as Map<String, dynamic>;
-            return _MaterialCard(
-              material: material,
-              isDark: isDark,
-              onTap: () => _openMaterial(material),
-            );
-          },
+        return Column(
+          children: [
+            filters,
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.only(top: 4, bottom: 100),
+                physics: const BouncingScrollPhysics(),
+                itemCount: entries.length,
+                itemBuilder: (context, index) {
+                  final entry = entries[index];
+                  if (entry is _MaterialSection) {
+                    return _buildMaterialSectionHeader(entry, isDark);
+                  }
+                  final material = entry as Map<String, dynamic>;
+                  return _MaterialCard(
+                    material: material,
+                    isDark: isDark,
+                    onTap: () => _openMaterial(material),
+                  );
+                },
+              ),
+            ),
+          ],
         );
       },
+    );
+  }
+
+  Widget _buildMaterialFilters(
+    List<String> courseCodes,
+    List<String> categories,
+    bool isDark,
+  ) {
+    final borderColor = isDark
+        ? Colors.white.withValues(alpha: 0.06)
+        : Colors.grey.withValues(alpha: 0.08);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: [
+                  CampusChip(
+                    label: 'All',
+                    isSelected: _materialCourse.isEmpty,
+                    onTap: () => setState(() => _materialCourse = ''),
+                  ),
+                  const SizedBox(width: 8),
+                  ...courseCodes.map(
+                    (code) => Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: CampusChip(
+                        label: code,
+                        isSelected: _materialCourse == code,
+                        onTap: () => setState(() => _materialCourse = code),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            height: 38,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: borderColor),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _materialCategory,
+                isDense: true,
+                borderRadius: BorderRadius.circular(12),
+                icon: const Icon(LucideIcons.chevronDown, size: 16),
+                items: [
+                  const DropdownMenuItem(value: '', child: Text('All types')),
+                  ...categories.map(
+                    (category) => DropdownMenuItem(
+                      value: category,
+                      child: Text(_MaterialCard._labelForCategory(category)),
+                    ),
+                  ),
+                ],
+                onChanged: (value) =>
+                    setState(() => _materialCategory = value ?? ''),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

@@ -13,15 +13,44 @@ void main() {
       expect(canPreviewInApp('application/xml'), isTrue);
     });
 
-    test('rejects Office, archives and CAD binaries', () {
+    test('allows Office documents through the online viewer', () {
       expect(
         canPreviewInApp(
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         ),
-        isFalse,
+        isTrue,
       );
+      expect(canPreviewInApp('application/vnd.ms-powerpoint'), isTrue);
+      expect(
+        canPreviewInApp(
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ),
+        isTrue,
+      );
+    });
+
+    test('rejects archives and CAD binaries', () {
       expect(canPreviewInApp('application/zip'), isFalse);
       expect(canPreviewInApp('application/octet-stream'), isFalse);
+    });
+  });
+
+  group('previewUrlFor', () {
+    test('leaves browser-previewable files untouched', () {
+      const url = 'https://api.example.com/uploads/paper.pdf';
+      expect(previewUrlFor(url, 'application/pdf'), url);
+    });
+
+    test('wraps Office documents in the Office Online viewer', () {
+      const url = 'https://api.example.com/uploads/a b.docx';
+      final result = previewUrlFor(
+        url,
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      );
+      expect(
+        result,
+        'https://view.officeapps.live.com/op/embed.aspx?src=${Uri.encodeComponent(url)}',
+      );
     });
   });
 }
