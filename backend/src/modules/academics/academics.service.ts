@@ -154,7 +154,19 @@ export class AcademicsService {
     const enrollments = await this.enrollmentRepo.find({
       where: { universityId, userId, status: EnrollmentStatus.ENROLLED },
     });
-    const courseIds = enrollments.map((e) => e.courseId).filter(Boolean);
+    const importedCourses = await this.courseRepo
+      .createQueryBuilder('course')
+      .select('course.id', 'id')
+      .where('course.universityId = :universityId', { universityId })
+      .andWhere('course.deletedAt IS NULL')
+      .andWhere("course.metadata->>'source' = :source", { source: 'first semester archive' })
+      .getRawMany<{ id: string }>();
+    const courseIds = Array.from(
+      new Set([
+        ...enrollments.map((e) => e.courseId).filter(Boolean),
+        ...importedCourses.map((course) => course.id),
+      ]),
+    );
     if (courseIds.length === 0) return [];
     if (options.courseId && !courseIds.includes(options.courseId)) return [];
 

@@ -30,6 +30,8 @@ services:
       # Use in-memory cache so no Redis instance is required.
       - key: CACHE_STORE
         value: memory
+      - key: IMPORT_MATERIALS
+        value: "true"
       # Migrations are the single source of truth. All migrations are
       # idempotent (IF NOT EXISTS / DO-block enum guards) so they are safe to
       # run against both fresh and previously synchronize-built databases.

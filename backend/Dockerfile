@@ -21,6 +21,8 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/uploads ./uploads
 COPY start.sh ./start.sh
 
 EXPOSE 3000
